@@ -52,14 +52,11 @@ namespace ChessChallenge.Application
         // Other
         readonly BoardUI boardUI;
         readonly MoveGenerator moveGenerator;
-        readonly int tokenCount;
-        readonly int debugTokenCount;
         readonly StringBuilder pgns;
 
         public ChallengeController()
         {
             Log($"Launching Chess-Challenge version {Settings.Version}");
-            (tokenCount, debugTokenCount) = GetTokenCount();
             Warmer.Warm();
 
             rng = new Random();
@@ -212,15 +209,6 @@ namespace ChessChallenge.Application
                 PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
                 _ => new ChessPlayer(new HumanPlayer(boardUI), type)
             };
-        }
-
-        static (int totalTokenCount, int debugTokenCount) GetTokenCount()
-        {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "src", "My Bot", "MyBot.cs");
-
-            using StreamReader reader = new(path);
-            string txt = reader.ReadToEnd();
-            return TokenCounter.CountTokens(txt);
         }
 
         void OnMoveChosen(Move chosenMove)
@@ -389,7 +377,6 @@ namespace ChessChallenge.Application
 
         public void DrawOverlay()
         {
-            BotBrainCapacityUI.Draw(tokenCount, debugTokenCount, MaxTokenCount);
             MenuUI.DrawButtons(this);
             MatchStatsUI.DrawMatchStats(this);
         }
