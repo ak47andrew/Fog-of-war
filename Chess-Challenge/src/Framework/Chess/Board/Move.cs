@@ -1,7 +1,7 @@
 ﻿/*
 32 bit (using only 17 bit) move representation.
 
-The format is as follows (iifffttttttssssss)
+The format is as follows (ii|fff|tttttt|ssssss)
 Bits 0-5: start square index
 Bits 6-11: target square index
 Bits 12-14: flag (promotion type, etc)
@@ -40,9 +40,9 @@ namespace ChessChallenge.Chess
             this.moveValue = moveValue;
         }
 
-        public Move(uint startSquare, uint targetSquare, uint flag = 0, uint uncompleteData = 0)
+        public Move(int startSquare, int targetSquare, int flag = 0, int uncompleteData = 0)
         {
-            moveValue = startSquare | targetSquare << 6 | flag << 12 | uncompleteData << 15;
+            moveValue = (uint)(startSquare | targetSquare << 6 | flag << 12 | uncompleteData << 15);
         }
 
         public uint Value => moveValue;
