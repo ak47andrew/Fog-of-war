@@ -50,7 +50,8 @@ namespace ChessChallenge.Application
         ExceptionDispatchInfo botExInfo;
 
         // Other
-        readonly BoardUI boardUI;
+        readonly BoardUI boardUIRight;
+        readonly BoardUI boardUILeft;
         readonly MoveGenerator moveGenerator;
         readonly StringBuilder pgns;
 
@@ -61,7 +62,8 @@ namespace ChessChallenge.Application
 
             rng = new Random();
             moveGenerator = new();
-            boardUI = new BoardUI();
+            boardUILeft = new BoardUI(true);
+            boardUIRight = new BoardUI();
             board = new Board();
             pgns = new();
 
@@ -70,7 +72,7 @@ namespace ChessChallenge.Application
             botMatchStartFens = FileHelper.ReadResourceFile("Fens.txt").Split('\n').Where(fen => fen.Length > 0).ToArray();
             botTaskWaitHandle = new AutoResetEvent(false);
 
-            StartNewGame(PlayerType.Human, PlayerType.MyBot);
+            StartNewGame(PlayerType.Human, PlayerType.Human);
         }
 
         public void StartNewGame(PlayerType whiteType, PlayerType blackType)
@@ -101,8 +103,10 @@ namespace ChessChallenge.Application
             PlayerBlack.SubscribeToMoveChosenEventIfHuman(OnMoveChosen);
 
             // UI Setup
-            boardUI.UpdatePosition(board);
-            boardUI.ResetSquareColours();
+            boardUILeft.UpdatePosition(board);
+            boardUIRight.UpdatePosition(board);
+            boardUILeft.ResetSquareColours();
+            boardUIRight.ResetSquareColours();
             SetBoardPerspective();
 
             // Start
@@ -188,16 +192,19 @@ namespace ChessChallenge.Application
             // Board perspective
             if (PlayerWhite.IsHuman || PlayerBlack.IsHuman)
             {
-                boardUI.SetPerspective(PlayerWhite.IsHuman);
+                boardUILeft.SetPerspective(PlayerWhite.IsHuman);
+                boardUIRight.SetPerspective(!PlayerWhite.IsHuman);
                 HumanWasWhiteLastGame = PlayerWhite.IsHuman;
             }
             else if (PlayerWhite.Bot is MyBot && PlayerBlack.Bot is MyBot)
             {
-                boardUI.SetPerspective(true);
+                boardUILeft.SetPerspective(true);
+                boardUIRight.SetPerspective(false);
             }
             else
             {
-                boardUI.SetPerspective(PlayerWhite.Bot is MyBot);
+                boardUILeft.SetPerspective(PlayerWhite.Bot is MyBot);
+                boardUIRight.SetPerspective(!(PlayerWhite.Bot is MyBot));
             }
         }
 
@@ -207,7 +214,7 @@ namespace ChessChallenge.Application
             {
                 PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
                 PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
-                _ => new ChessPlayer(new HumanPlayer(boardUI), type)
+                _ => new ChessPlayer(new HumanPlayer(boardUILeft), type)
             };
         }
 
@@ -245,7 +252,8 @@ namespace ChessChallenge.Application
                 lastMoveMadeTime = (float)Raylib.GetTime();
 
                 board.MakeMove(move, false);
-                boardUI.UpdatePosition(board, move, animate);
+                boardUILeft.UpdatePosition(board, move, animate);
+                boardUIRight.UpdatePosition(board, move, animate);
 
                 GameResult result = Arbiter.GetGameState(board);
                 if (result == GameResult.InProgress)
@@ -369,10 +377,12 @@ namespace ChessChallenge.Application
 
         public void Draw()
         {
-            boardUI.Draw();
+            boardUILeft.Draw();
+            boardUIRight.Draw();
             string nameW = GetPlayerName(PlayerWhite);
             string nameB = GetPlayerName(PlayerBlack);
-            boardUI.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
+            boardUILeft.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
+            boardUIRight.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
         }
 
         public void DrawOverlay()
@@ -439,7 +449,8 @@ namespace ChessChallenge.Application
 
         public void Release()
         {
-            boardUI.Release();
+            boardUILeft.Release();
+            boardUIRight.Release();
         }
     }
 }
