@@ -61,7 +61,6 @@ namespace ChessChallenge.Application
 
         public BoardUI(bool isWhite = false)
         {
-            // TODO add FoW support
             // TODO move stats on top of board
             this.isWhite = isWhite;
             theme = new BoardTheme();
@@ -91,18 +90,7 @@ namespace ChessChallenge.Application
         public void UpdateFogOfWar(Span<Move> moves){
             foreach (var move in moves)
             {
-                Console.WriteLine(move.TargetSquareIndex);
                 fow[move.TargetSquareIndex] = true;
-            }
-        }
-
-        public void DebugFow() {
-            for (int i = 0; i < 64; i++)
-            {
-                if (fow[i])
-                {
-                    Console.WriteLine($"{i / 8} {i % 8}");
-                }
             }
         }
 

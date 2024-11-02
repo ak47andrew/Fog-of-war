@@ -107,6 +107,7 @@ namespace ChessChallenge.Application
             boardUIWhite.ResetSquareColours();
             boardUIBlack.ResetSquareColours();
             SetBoardPerspective();
+            UpdateFogOfWar();
 
             // Start
             isPlaying = true;
@@ -236,24 +237,10 @@ namespace ChessChallenge.Application
                 bool animate = PlayerToMove.IsBot;
                 lastMoveMadeTime = (float)Raylib.GetTime();
 
-                boardUIWhite.ClearFogOfWar();
-                boardUIBlack.ClearFogOfWar();
                 board.MakeMove(move, false);
                 boardUIWhite.UpdatePosition(board, move, animate);
                 boardUIBlack.UpdatePosition(board, move, animate);
-                boardUIWhite.UpdateFogOfWar(board.colourBitboards[0]);
-                boardUIBlack.UpdateFogOfWar(board.colourBitboards[1]);
-                if (board.IsWhiteToMove) {
-                    boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
-                    board.MakeNullMove();
-                    boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
-                    board.UnmakeNullMove();
-                } else {
-                    boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
-                    board.MakeNullMove();
-                    boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board));
-                    board.UnmakeNullMove();
-                }
+                UpdateFogOfWar();                
 
                 GameResult result = Arbiter.GetGameState(board);
                 if (result == GameResult.InProgress)
@@ -264,6 +251,24 @@ namespace ChessChallenge.Application
                 {
                     EndGame(result);
                 }
+            }
+        }
+
+        void UpdateFogOfWar(){
+            boardUIWhite.ClearFogOfWar();
+            boardUIBlack.ClearFogOfWar();
+            boardUIWhite.UpdateFogOfWar(board.colourBitboards[0]);
+            boardUIBlack.UpdateFogOfWar(board.colourBitboards[1]);
+            if (board.IsWhiteToMove) {
+                boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                board.MakeNullMove();
+                boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                board.UnmakeNullMove();
+            } else {
+                boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                board.MakeNullMove();
+                boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board));
+                board.UnmakeNullMove();
             }
         }
 
