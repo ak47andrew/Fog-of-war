@@ -22,10 +22,11 @@ namespace ChessChallenge.Application
         public Color CheckLight = new Color(234, 74, 74, 255);
         public Color CheckDark = new Color(207, 39, 39, 255);
 
-        public Color BorderCol = new Color(44, 44, 44, 255);
+        public Color BorderColWhite = new Color(171, 163, 142, 255);
+        public Color BorderColBlack = new Color(44, 44, 44, 255);
 
         public Color LightCoordCol = new Color(255, 240, 220, 255);
         public Color DarkCoordCol = new Color(140, 100, 80, 255);
+        public Color FogOfWar = new Color(189, 189, 189, 255);
     }
 }
-

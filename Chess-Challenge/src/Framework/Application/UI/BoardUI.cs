@@ -47,7 +47,8 @@ namespace ChessChallenge.Application
         Move moveToAnimate;
         double moveAnimStartTime;
         bool isAnimatingMove;
-        bool isLeft;
+        bool isWhite;
+        bool[] fow = new bool[64];
 
         public enum HighlightType
         {
@@ -58,11 +59,11 @@ namespace ChessChallenge.Application
         }
 
 
-        public BoardUI(bool isLeft = false)
+        public BoardUI(bool isWhite = false)
         {
             // TODO add FoW support
             // TODO move stats on top of board
-            this.isLeft = isLeft;
+            this.isWhite = isWhite;
             theme = new BoardTheme();
 
             LoadPieceTexture();
@@ -72,6 +73,37 @@ namespace ChessChallenge.Application
             squareColOverrides = new Dictionary<int, Color>();
             topTextCol = inactiveTextCol;
             bottomTextCol = inactiveTextCol;
+        }
+
+        public void ClearFogOfWar(){
+            Array.Fill(fow, false);
+        }
+
+        public void UpdateFogOfWar(ulong bitboard){
+            for (int i = 0; i < 64; i++)
+            {
+                if ((bitboard & (1UL << i)) != 0){
+                    fow[i] = true;
+                }
+            }
+        }
+
+        public void UpdateFogOfWar(Span<Move> moves){
+            foreach (var move in moves)
+            {
+                Console.WriteLine(move.TargetSquareIndex);
+                fow[move.TargetSquareIndex] = true;
+            }
+        }
+
+        public void DebugFow() {
+            for (int i = 0; i < 64; i++)
+            {
+                if (fow[i])
+                {
+                    Console.WriteLine($"{i / 8} {i % 8}");
+                }
+            }
         }
 
         public void SetPerspective(bool whitePerspective)
@@ -138,7 +170,7 @@ namespace ChessChallenge.Application
         public bool TryGetSquareAtPoint(Vector2 worldPos, out int squareIndex)
         {
             Vector2 boardStartPosWorld = new Vector2(
-                squareSize * (-4 - (isLeft ? 5 : -5)), // Adjust X based on board position
+                squareSize * (-4 - (isWhite ? 5 : -5)), // Adjust X based on board position
                 squareSize * -4 // Y remains the same
             );
 
@@ -246,8 +278,8 @@ namespace ChessChallenge.Application
         {
             Coord startCoord = new Coord(moveToAnimate.StartSquareIndex);
             Coord targetCoord = new Coord(moveToAnimate.TargetSquareIndex);
-            Vector2 startPos = GetSquarePos(startCoord.fileIndex, startCoord.rankIndex, whitePerspective, isLeft);
-            Vector2 targetPos = GetSquarePos(targetCoord.fileIndex, targetCoord.rankIndex, whitePerspective, isLeft);
+            Vector2 startPos = GetSquarePos(startCoord.fileIndex, startCoord.rankIndex, whitePerspective, isWhite);
+            Vector2 targetPos = GetSquarePos(targetCoord.fileIndex, targetCoord.rankIndex, whitePerspective, isWhite);
 
             Vector2 animPos = Vector2.Lerp(startPos, targetPos, (float)animT);
             DrawPiece(board.Square[moveToAnimate.StartSquareIndex], animPos);
@@ -265,7 +297,7 @@ namespace ChessChallenge.Application
             string colNameBottom = whitePerspective ? "White" : "Black";
             string colNameTop = !whitePerspective ? "White" : "Black";
 
-            int boardStartX = -squareSize * 4 - squareSize * 5 * (this.isLeft ? 1 : -1);
+            int boardStartX = -squareSize * 4 - squareSize * 5 * (this.isWhite ? 1 : -1);
             int boardStartY = -squareSize * 4;
             const int spaceY = 35;
 
@@ -320,10 +352,11 @@ namespace ChessChallenge.Application
 
         void DrawBorder()
         {
-            int boardStartX = -squareSize * 4 - squareSize * 5 * (this.isLeft ? 1 : -1);
+            int boardStartX = -squareSize * 4 - squareSize * 5 * (this.isWhite ? 1 : -1);
             int boardStartY = -squareSize * 4;
-            int w = 12;
-            Raylib.DrawRectangle(boardStartX - w, boardStartY - w, 8 * squareSize + w * 2, 8 * squareSize + w * 2, theme.BorderCol);
+            int w = 6;
+            Raylib.DrawRectangle(boardStartX - w, boardStartY - w, 8 * squareSize + w * 2, 8 * squareSize + w * 2, 
+                                isWhite ? theme.BorderColWhite : theme.BorderColBlack);
         }
 
         void DrawSquare(int file, int rank)
@@ -337,11 +370,11 @@ namespace ChessChallenge.Application
             }
 
             // top left
-            Vector2 pos = GetSquarePos(file, rank, whitePerspective, isLeft);
+            Vector2 pos = GetSquarePos(file, rank, whitePerspective, isWhite);
             Raylib.DrawRectangle((int)pos.X, (int)pos.Y, squareSize, squareSize, col);
             int piece = board.Square[coord.SquareIndex];
             float alpha = isDraggingPiece && dragSquare == coord.SquareIndex ? 0.3f : 1;
-            if (!isAnimatingMove || coord.SquareIndex != moveToAnimate.StartSquareIndex)
+            if ((!isAnimatingMove || coord.SquareIndex != moveToAnimate.StartSquareIndex) && fow[coord.SquareIndex])
             {
                 DrawPiece(piece, new Vector2((int)pos.X, (int)pos.Y), alpha);
             }
@@ -374,7 +407,7 @@ namespace ChessChallenge.Application
             bool isSet = BitBoardUtility.ContainsSquare(bitboard, new Coord(file,rank).SquareIndex);
             Color col = isSet ? bitboardColONE : bitboardColZERO;
 
-            Vector2 squarePos = GetSquarePos(file, rank, whitePerspective, isLeft);
+            Vector2 squarePos = GetSquarePos(file, rank, whitePerspective, isWhite);
             Raylib.DrawRectangle((int)squarePos.X, (int)squarePos.Y, squareSize, squareSize, col);
             Vector2 textPos = squarePos + new Vector2(squareSize, squareSize) / 2;
             DrawText(isSet ? "1" : "0", textPos, 50, 0, Color.WHITE, AlignH.Centre);

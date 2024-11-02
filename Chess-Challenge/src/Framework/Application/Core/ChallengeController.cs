@@ -2,7 +2,6 @@
 using ChessChallenge.Example;
 using Raylib_cs;
 using System;
-using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -50,8 +49,8 @@ namespace ChessChallenge.Application
         ExceptionDispatchInfo botExInfo;
 
         // Other
-        readonly BoardUI boardUIRight;
-        readonly BoardUI boardUILeft;
+        readonly BoardUI boardUIBlack;
+        readonly BoardUI boardUIWhite;
         readonly MoveGenerator moveGenerator;
         readonly StringBuilder pgns;
 
@@ -62,8 +61,8 @@ namespace ChessChallenge.Application
 
             rng = new Random();
             moveGenerator = new();
-            boardUILeft = new BoardUI(true);
-            boardUIRight = new BoardUI();
+            boardUIWhite = new BoardUI(true);
+            boardUIBlack = new BoardUI();
             board = new Board();
             pgns = new();
 
@@ -103,10 +102,10 @@ namespace ChessChallenge.Application
             PlayerBlack.SubscribeToMoveChosenEventIfHuman(OnMoveChosen);
 
             // UI Setup
-            boardUILeft.UpdatePosition(board);
-            boardUIRight.UpdatePosition(board);
-            boardUILeft.ResetSquareColours();
-            boardUIRight.ResetSquareColours();
+            boardUIWhite.UpdatePosition(board);
+            boardUIBlack.UpdatePosition(board);
+            boardUIWhite.ResetSquareColours();
+            boardUIBlack.ResetSquareColours();
             SetBoardPerspective();
 
             // Start
@@ -189,23 +188,9 @@ namespace ChessChallenge.Application
 
         void SetBoardPerspective()
         {
-            // Board perspective
-            if (PlayerWhite.IsHuman || PlayerBlack.IsHuman)
-            {
-                boardUILeft.SetPerspective(PlayerWhite.IsHuman);
-                boardUIRight.SetPerspective(!PlayerWhite.IsHuman);
-                HumanWasWhiteLastGame = PlayerWhite.IsHuman;
-            }
-            else if (PlayerWhite.Bot is MyBot && PlayerBlack.Bot is MyBot)
-            {
-                boardUILeft.SetPerspective(true);
-                boardUIRight.SetPerspective(false);
-            }
-            else
-            {
-                boardUILeft.SetPerspective(PlayerWhite.Bot is MyBot);
-                boardUIRight.SetPerspective(!(PlayerWhite.Bot is MyBot));
-            }
+            boardUIWhite.SetPerspective(true);
+            boardUIBlack.SetPerspective(false);
+            return;
         }
 
         ChessPlayer CreatePlayer(PlayerType type)
@@ -214,7 +199,7 @@ namespace ChessChallenge.Application
             {
                 PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
                 PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
-                _ => new ChessPlayer(new HumanPlayer(boardUILeft), type)
+                _ => new ChessPlayer(new HumanPlayer(boardUIWhite), type) // TODO: handle this properly for both boards
             };
         }
 
@@ -251,9 +236,24 @@ namespace ChessChallenge.Application
                 bool animate = PlayerToMove.IsBot;
                 lastMoveMadeTime = (float)Raylib.GetTime();
 
+                boardUIWhite.ClearFogOfWar();
+                boardUIBlack.ClearFogOfWar();
                 board.MakeMove(move, false);
-                boardUILeft.UpdatePosition(board, move, animate);
-                boardUIRight.UpdatePosition(board, move, animate);
+                boardUIWhite.UpdatePosition(board, move, animate);
+                boardUIBlack.UpdatePosition(board, move, animate);
+                boardUIWhite.UpdateFogOfWar(board.colourBitboards[0]);
+                boardUIBlack.UpdateFogOfWar(board.colourBitboards[1]);
+                if (board.IsWhiteToMove) {
+                    boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                    board.MakeNullMove();
+                    boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                    board.UnmakeNullMove();
+                } else {
+                    boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                    board.MakeNullMove();
+                    boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board));
+                    board.UnmakeNullMove();
+                }
 
                 GameResult result = Arbiter.GetGameState(board);
                 if (result == GameResult.InProgress)
@@ -377,12 +377,12 @@ namespace ChessChallenge.Application
 
         public void Draw()
         {
-            boardUILeft.Draw();
-            boardUIRight.Draw();
+            boardUIWhite.Draw();
+            boardUIBlack.Draw();
             string nameW = GetPlayerName(PlayerWhite);
             string nameB = GetPlayerName(PlayerBlack);
-            boardUILeft.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
-            boardUIRight.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
+            boardUIWhite.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
+            boardUIBlack.DrawPlayerNames(nameW, nameB, PlayerWhite.TimeRemainingMs, PlayerBlack.TimeRemainingMs, isPlaying);
         }
 
         public void DrawOverlay()
@@ -449,8 +449,8 @@ namespace ChessChallenge.Application
 
         public void Release()
         {
-            boardUILeft.Release();
-            boardUIRight.Release();
+            boardUIWhite.Release();
+            boardUIBlack.Release();
         }
     }
 }
