@@ -96,8 +96,8 @@ namespace ChessChallenge.Application
             board.LoadPosition(botMatchStartFens[fenIndex]);
 
             // Player Setup
-            PlayerWhite = CreatePlayer(whiteType);
-            PlayerBlack = CreatePlayer(blackType);
+            PlayerWhite = CreatePlayer(whiteType, true);
+            PlayerBlack = CreatePlayer(blackType, false);
             PlayerWhite.SubscribeToMoveChosenEventIfHuman(OnMoveChosen);
             PlayerBlack.SubscribeToMoveChosenEventIfHuman(OnMoveChosen);
 
@@ -193,13 +193,13 @@ namespace ChessChallenge.Application
             return;
         }
 
-        ChessPlayer CreatePlayer(PlayerType type)
+        ChessPlayer CreatePlayer(PlayerType type, bool color = true)
         {
             return type switch
             {
                 PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
                 PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
-                _ => new ChessPlayer(new HumanPlayer(boardUIWhite), type) // TODO: handle this properly for both boards
+                _ => new ChessPlayer(new HumanPlayer(color ? boardUIWhite : boardUIBlack), type)
             };
         }
 
