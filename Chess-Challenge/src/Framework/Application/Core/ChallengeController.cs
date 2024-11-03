@@ -27,7 +27,7 @@ namespace ChessChallenge.Application
         bool isPlaying;
         Board board;
         public ChessPlayer PlayerWhite { get; private set; }
-        public ChessPlayer PlayerBlack {get;private set;}
+        public ChessPlayer PlayerBlack { get; private set; }
 
         float lastMoveMadeTime;
         bool isWaitingToPlayMove;
@@ -113,7 +113,7 @@ namespace ChessChallenge.Application
             isPlaying = true;
             NotifyTurnToMove();
         }
-
+    
         void BotThinkerThread()
         {
             int threadID = gameID;
@@ -145,6 +145,7 @@ namespace ChessChallenge.Application
         Move GetBotMove()
         {
             API.Board botBoard = new(board);
+            new FogOfWar(botBoard).AddFogOfWar();
             try
             {
                 API.Timer timer = new(PlayerToMove.TimeRemainingMs, PlayerNotOnMove.TimeRemainingMs, GameDurationMilliseconds, IncrementMilliseconds);
@@ -159,8 +160,6 @@ namespace ChessChallenge.Application
             }
             return Move.NullMove;
         }
-
-
 
         void NotifyTurnToMove()
         {
@@ -191,7 +190,6 @@ namespace ChessChallenge.Application
         {
             boardUIWhite.SetPerspective(true);
             boardUIBlack.SetPerspective(false);
-            return;
         }
 
         ChessPlayer CreatePlayer(PlayerType type, bool color = true)

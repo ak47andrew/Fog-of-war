@@ -28,6 +28,18 @@ namespace ChessChallenge.API
             IsWhitePieceList = Chess.PieceHelper.IsWhite(piece);
         }
 
+        public PieceList(Piece[] pieces, Board board, PieceType type, bool isWhite){
+            this.board = board;
+            Chess.PieceList pl = new();
+            foreach (var p in pieces)
+            {
+                pl.AddPieceAtSquare(p.Square.Index);
+            }
+            list = pl;
+            TypeOfPieceInList = type;
+            IsWhitePieceList = isWhite;
+        }
+
 
         public Piece this[int index] => board.GetPiece(new Square(list[index]));
 

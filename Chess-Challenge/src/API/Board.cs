@@ -14,7 +14,7 @@ namespace ChessChallenge.API
 		readonly RepetitionTable repetitionTable;
 
 		readonly PieceList[] allPieceLists;
-		readonly PieceList[] validPieceLists;
+		PieceList[] validPieceLists;
 
         readonly Move[] movesDest;
 		Move[] cachedLegalMoves;
@@ -69,6 +69,14 @@ namespace ChessChallenge.API
 			GameRepetitionHistory = board.RepetitionPositionHistory.ToArray();
 			repetitionTable.Init(board);
         }
+
+		public void UpdatePieceList(int index, Piece[] pieces){
+			if (validPieceLists[index] != null)
+			{
+				PieceList pl = new(pieces, this, validPieceLists[index].TypeOfPieceInList, validPieceLists[index].IsWhitePieceList);
+				validPieceLists[index] = pl;
+			}
+		}
 
 		/// <summary>
 		/// Updates the board state with the given move.
