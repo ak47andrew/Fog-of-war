@@ -114,29 +114,14 @@ namespace ChessChallenge.API
 		/// Note: skipping a turn is not allowed in the game, but it can be used as a search technique.
 		/// Skipped turns can be undone with UndoSkipTurn()
 		/// </summary>
-		public bool SkipTurn()
+		public void SkipTurn()
 		{
 			board.MakeNullMove();
             OnPositionChanged();
-            return true;
 		}
 
         /// <summary>
-        /// Forcibly skips the current turn.
-		/// Unlike TrySkipTurn(), this will work even when in check, which has some dangerous side-effects if done:
-		/// 1) Generating 'legal' moves will now include the illegal capture of the king.
-		/// 2) If the skipped turn is undone, the board will now incorrectly report that the position is not check.
-        /// Note: skipping a turn is not allowed in the game, but it can be used as a search technique.
-		/// Skipped turns can be undone with UndoSkipTurn()
-        /// </summary>
-        public void ForceSkipTurn()
-        {
-            board.MakeNullMove();
-            OnPositionChanged();
-        }
-
-        /// <summary>
-        /// Undo a turn that was succesfully skipped with TrySkipTurn() or ForceSkipTurn()
+        /// Undo a turn that was succesfully skipped with SkipTurn()
         /// </summary>
         public void UndoSkipTurn()
 		{
