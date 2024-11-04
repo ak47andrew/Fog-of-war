@@ -9,6 +9,8 @@ namespace ChessChallenge.Chess
         public const ulong FileH = FileA << 7;
         public const ulong NotAFile = ~FileA;
         public const ulong NotHFile = ~FileH;
+        public const ulong EmptyBoard = 0;
+        public const ulong FullBoard = ~EmptyBoard;
 
         public const ulong Rank1 = 0b11111111;
         public const ulong Rank2 = Rank1 << (8 * 1);

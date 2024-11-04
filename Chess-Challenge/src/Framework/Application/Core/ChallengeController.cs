@@ -258,14 +258,14 @@ namespace ChessChallenge.Application
             boardUIWhite.UpdateFogOfWar(board.colourBitboards[0]);
             boardUIBlack.UpdateFogOfWar(board.colourBitboards[1]);
             if (board.IsWhiteToMove) {
-                boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateFowMoves(board));
                 board.MakeNullMove();
-                boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateFowMoves(board));
                 board.UnmakeNullMove();
             } else {
-                boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateMoves(board, false));
+                boardUIBlack.UpdateFogOfWar(moveGenerator.GenerateFowMoves(board));
                 board.MakeNullMove();
-                boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateMoves(board));
+                boardUIWhite.UpdateFogOfWar(moveGenerator.GenerateFowMoves(board));
                 board.UnmakeNullMove();
             }
         }

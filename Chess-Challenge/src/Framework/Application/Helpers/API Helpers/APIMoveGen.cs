@@ -108,12 +108,6 @@ namespace ChessChallenge.Application.APIHelpers
             moves = moves.Slice(0, currMoveIndex);
         }
 
-        // Note, this will only return correct value after GenerateMoves() has been called in the current position
-        public bool InCheck()
-        {
-            return inCheck;
-        }
-
         public void Init(Board board)
         {
             this.board = board;

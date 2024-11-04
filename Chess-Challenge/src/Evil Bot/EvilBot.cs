@@ -46,7 +46,7 @@ namespace ChessChallenge.Example
         bool MoveIsCheckmate(Board board, Move move)
         {
             board.MakeMove(move);
-            bool isMate = board.IsInCheckmate();
+            bool isMate = board.IsKingCaptured();
             board.UndoMove(move);
             return isMate;
         }

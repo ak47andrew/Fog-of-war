@@ -32,13 +32,13 @@
             var moves = moveGenerator.GenerateMoves(board);
 
             // Look for mate/stalemate
-            if (moves.Length == 0)
+            if (board.kings[Board.WhiteIndex].Count == 0)
             {
-                if (moveGenerator.InCheck())
-                {
-                    return (board.IsWhiteToMove) ? GameResult.WhiteIsMated : GameResult.BlackIsMated;
-                }
-                return GameResult.Stalemate;
+                return GameResult.WhiteIsMated;
+            }
+            else if (board.kings[Board.BlackIndex].Count == 0)
+            {
+                return GameResult.BlackIsMated;
             }
 
             // Fifty move rule

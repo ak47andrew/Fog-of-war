@@ -179,18 +179,7 @@ namespace ChessChallenge.Chess
 
 			board.MakeMove(move, inSearch: true);
 			var legalResponses = moveGen.GenerateMoves(board);
-			// add check/mate symbol if applicable
-			if (moveGen.InCheck())
-			{
-				if (legalResponses.Length == 0)
-				{
-					moveNotation += "#";
-				}
-				else
-				{
-					moveNotation += "+";
-				}
-			}
+
 			board.UndoMove(move, inSearch: true);
 
 			return moveNotation;

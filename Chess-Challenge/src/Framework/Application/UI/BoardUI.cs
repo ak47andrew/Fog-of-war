@@ -35,7 +35,7 @@ namespace ChessChallenge.Application
         int dragSquare;
         Vector2 dragPos;
 
-        static readonly int[] pieceImageOrder = { 5, 3, 2, 4, 1, 0 };
+        static readonly int[] pieceImageOrder = { 5, 3, 2, 4, 1, 0, 6 };
         Texture2D piecesTexture;
         BoardTheme theme;
         Dictionary<int, Color> squareColOverrides;
@@ -91,6 +91,10 @@ namespace ChessChallenge.Application
             foreach (var move in moves)
             {
                 fow[move.TargetSquareIndex] = true;
+                if (move.IsEnPassant)
+                {
+                    fow[move.EnpassantSquareIndex] = true;
+                }
             }
         }
 
@@ -349,7 +353,6 @@ namespace ChessChallenge.Application
 
         void DrawSquare(int file, int rank)
         {
-
             Coord coord = new Coord(file, rank);
             Color col = coord.IsLightSquare() ? theme.LightCol : theme.DarkCol;
             if (squareColOverrides.TryGetValue(coord.SquareIndex, out Color overrideCol))
@@ -360,9 +363,9 @@ namespace ChessChallenge.Application
             // top left
             Vector2 pos = GetSquarePos(file, rank, whitePerspective, isWhite);
             Raylib.DrawRectangle((int)pos.X, (int)pos.Y, squareSize, squareSize, col);
-            int piece = board.Square[coord.SquareIndex];
+            int piece = fow[coord.SquareIndex] ? board.Square[coord.SquareIndex] : PieceHelper.Fog;
             float alpha = isDraggingPiece && dragSquare == coord.SquareIndex ? 0.3f : 1;
-            if ((!isAnimatingMove || coord.SquareIndex != moveToAnimate.StartSquareIndex) && fow[coord.SquareIndex])
+            if ((!isAnimatingMove || coord.SquareIndex != moveToAnimate.StartSquareIndex))
             {
                 DrawPiece(piece, new Vector2((int)pos.X, (int)pos.Y), alpha);
             }

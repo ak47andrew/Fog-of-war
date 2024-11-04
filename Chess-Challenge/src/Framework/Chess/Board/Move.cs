@@ -52,6 +52,7 @@ namespace ChessChallenge.Chess
         public int TargetSquareIndex => (int)((moveValue & targetSquareMask) >> 6);
         public bool IsPromotion => MoveFlag >= PromoteToQueenFlag;
         public bool IsEnPassant => MoveFlag == EnPassantCaptureFlag;
+        public int EnpassantSquareIndex => TargetSquareIndex < 32 ? TargetSquareIndex + 8 : TargetSquareIndex - 8;
         public bool IsStartSquareUnkown => (UncompleteData & UnknownStart) != 0;
         public bool IsTargetSquareUnkown => (UncompleteData & UnknownTarget) != 0;
         public bool IsFullyUnknown => IsStartSquareUnkown && IsTargetSquareUnkown;
