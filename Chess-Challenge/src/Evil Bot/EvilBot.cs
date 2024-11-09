@@ -45,10 +45,7 @@ namespace ChessChallenge.Example
         // Test if this move gives checkmate
         bool MoveIsCheckmate(Board board, Move move)
         {
-            board.MakeMove(move);
-            bool isMate = board.IsKingCaptured();
-            board.UndoMove(move);
-            return isMate;
+            return move.CapturePieceType == PieceType.King;
         }
     }
 }

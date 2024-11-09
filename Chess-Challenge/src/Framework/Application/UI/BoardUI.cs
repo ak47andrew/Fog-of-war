@@ -110,10 +110,6 @@ namespace ChessChallenge.Application
             // Update
             this.board = new(board);
             lastMove = Move.NullMove;
-            if (board.IsInCheck())
-            {
-                OverrideSquareColour(board.KingSquare[board.MoveColourIndex], HighlightType.Check);
-            }
         }
 
         public void UpdatePosition(Board board, Move moveMade, bool animate = false)

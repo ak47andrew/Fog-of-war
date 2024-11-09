@@ -263,16 +263,6 @@ namespace ChessChallenge.API
 		{
 			return validPieceLists;
 		}
-		
-		/// <summary>
-		/// Is the given square attacked by the opponent?
-		/// (opponent being whichever player doesn't currently have the right to move)
-		/// </summary>
-		public bool SquareIsAttackedByOpponent(Square square)
-		{
-			return BitboardHelper.SquareIsSet(moveGen.GetOpponentAttackMap(board), square);
-		}
-
 
 		/// <summary>
 		/// FEN representation of the current position
@@ -428,16 +418,6 @@ namespace ChessChallenge.API
             hasCachedMoves = false;
             hasCachedCaptureMoves = false;
 			hasCachedMoveCount = false;
-        }
-
-		bool HasZeroLegalMoves()
-		{
-			if (hasCachedMoveCount)
-			{
-				return cachedMoveCount == 0;
-			}
-			return moveGen.NoLegalMovesInPosition(board);
-		}
-
+        } 
     }
 }

@@ -65,10 +65,6 @@ namespace ChessChallenge.Chess
 
         // piece count excluding pawns and kings
         public int totalPieceCountWithoutPawnsAndKings;
-        bool cachedInCheckValue;
-        bool hasCachedInCheckValue;
-
-
 
         public Board(Board? source = null)
         {
@@ -82,22 +78,6 @@ namespace ChessChallenge.Chess
                 }
             }
         }
-
-
-        // Is current player in check?
-        // Note: caches check value so calling multiple times does not require recalculating
-        public bool IsInCheck()
-        {
-            if (hasCachedInCheckValue)
-            {
-                return cachedInCheckValue;
-            }
-            cachedInCheckValue = CalculateInCheckState();
-            hasCachedInCheckValue = true;
-
-            return cachedInCheckValue;
-        }
-
 
         // Update piece lists / bitboards based on given move info.
         // Note that this does not account for the following things, which must be handled separately:
@@ -151,7 +131,7 @@ namespace ChessChallenge.Chess
                     captureSquare = targetSquare + (IsWhiteToMove ? -8 : 8);
                     Square[captureSquare] = PieceHelper.None;
                 }
-                if (capturedPieceType != PieceHelper.Pawn)
+                if (capturedPieceType != PieceHelper.Pawn && capturedPieceType != PieceHelper.King)
                 {
                     totalPieceCountWithoutPawnsAndKings--;
                 }
@@ -278,7 +258,6 @@ namespace ChessChallenge.Chess
             GameState newState = new(capturedPieceType, newEnPassantFile, newCastlingRights, newFiftyMoveCounter, newZobristKey);
             gameStateHistory.Push(newState);
             currentGameState = newState;
-            hasCachedInCheckValue = false;
 
             if (!inSearch)
             {
@@ -386,10 +365,9 @@ namespace ChessChallenge.Chess
             gameStateHistory.Pop();
             currentGameState = gameStateHistory.Peek();
             plyCount--;
-            hasCachedInCheckValue = false;
         }
 
-        // Switch side to play without making a move (NOTE: must not be in check when called)
+        // Switch side to play without making a move
         public void MakeNullMove()
         {
             IsWhiteToMove = !IsWhiteToMove;
@@ -404,8 +382,6 @@ namespace ChessChallenge.Chess
             currentGameState = newState;
             gameStateHistory.Push(currentGameState);
             UpdateSliderBitboards();
-            hasCachedInCheckValue = true;
-            cachedInCheckValue = false;
         }
 
         public void UnmakeNullMove()
@@ -416,50 +392,6 @@ namespace ChessChallenge.Chess
             gameStateHistory.Pop();
             currentGameState = gameStateHistory.Peek();
             UpdateSliderBitboards();
-            hasCachedInCheckValue = true;
-            cachedInCheckValue = false;
-        }
-
-
-
-        // Calculate in check value
-        // Call IsInCheck instead for automatic caching of value
-        public bool CalculateInCheckState()
-        {
-            int kingSquare = KingSquare[MoveColourIndex];
-            ulong blockers = allPiecesBitboard;
-
-            if (EnemyOrthogonalSliders != 0)
-            {
-                ulong rookAttacks = Magic.GetRookAttacks(kingSquare, blockers);
-                if ((rookAttacks & EnemyOrthogonalSliders) != 0)
-                {
-                    return true;
-                }
-            }
-            if (EnemyDiagonalSliders != 0)
-            {
-                ulong bishopAttacks = Magic.GetBishopAttacks(kingSquare, blockers);
-                if ((bishopAttacks & EnemyDiagonalSliders) != 0)
-                {
-                    return true;
-                }
-            }
-
-            ulong enemyKnights = pieceBitboards[PieceHelper.MakePiece(PieceHelper.Knight, OpponentColour)];
-            if ((Bits.KnightAttacks[kingSquare] & enemyKnights) != 0)
-            {
-                return true;
-            }
-
-            ulong enemyPawns = pieceBitboards[PieceHelper.MakePiece(PieceHelper.Pawn, OpponentColour)];
-            ulong pawnAttackMask = IsWhiteToMove ? Bits.WhitePawnAttacks[kingSquare] : Bits.BlackPawnAttacks[kingSquare];
-            if ((pawnAttackMask & enemyPawns) != 0)
-            {
-                return true;
-            }
-
-            return false;
         }
 
 
