@@ -1,5 +1,4 @@
 ﻿using ChessChallenge.Chess;
-using ChessChallenge.Example;
 using Raylib_cs;
 using System;
 using System.Linq;
@@ -14,12 +13,12 @@ namespace ChessChallenge.Application
 {
     public class ChallengeController
     {
-        public enum PlayerType
-        {
-            Human,
-            MyBot,
-            EvilBot
-        }
+        // public enum PlayerType
+        // {
+        //     Human,
+        //     MyBot,
+        //     EvilBot
+        // }
 
         // Game state
         readonly Random rng;
@@ -71,10 +70,10 @@ namespace ChessChallenge.Application
             botMatchStartFens = FileHelper.ReadResourceFile("Fens.txt").Split('\n').Where(fen => fen.Length > 0).ToArray();
             botTaskWaitHandle = new AutoResetEvent(false);
 
-            StartNewGame(PlayerType.Human, PlayerType.Human);
+            StartNewGame("", "");
         }
 
-        public void StartNewGame(PlayerType whiteType, PlayerType blackType)
+        public void StartNewGame(string whiteType, string blackType)
         {
             // End any ongoing game
             EndGame(GameResult.DrawByArbiter, log: false, autoStartNextBotMatch: false);
@@ -91,7 +90,7 @@ namespace ChessChallenge.Application
             }
             // Board Setup
             board = new Board();
-            bool isGameWithHuman = whiteType is PlayerType.Human || blackType is PlayerType.Human;
+            bool isGameWithHuman = whiteType == "" || blackType == "";
             int fenIndex = isGameWithHuman ? 0 : botMatchGameIndex / 2;
             board.LoadPosition(botMatchStartFens[fenIndex]);
 
@@ -192,13 +191,14 @@ namespace ChessChallenge.Application
             boardUIBlack.SetPerspective(false);
         }
 
-        ChessPlayer CreatePlayer(PlayerType type, bool color = true)
+        ChessPlayer CreatePlayer(string type, bool color = true)
         {
             return type switch
             {
-                PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
-                PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
-                _ => new ChessPlayer(new HumanPlayer(color ? boardUIWhite : boardUIBlack), type)
+                // PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
+                // PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
+                "" => new ChessPlayer(new HumanPlayer(color ? boardUIWhite : boardUIBlack)),
+                string s => new ChessPlayer(new UCIBot(s), GameDurationMilliseconds)
             };
         }
 
@@ -316,7 +316,7 @@ namespace ChessChallenge.Application
         {
             if (originalGameID == gameID)
             {
-                StartNewGame(PlayerBlack.PlayerType, PlayerWhite.PlayerType);
+                StartNewGame(PlayerBlack.ToString(), PlayerWhite.ToString());
             }
             timer.Close();
         }
@@ -394,10 +394,10 @@ namespace ChessChallenge.Application
             MatchStatsUI.DrawMatchStats(this);
         }
 
-        static string GetPlayerName(ChessPlayer player) => GetPlayerName(player.PlayerType);
-        static string GetPlayerName(PlayerType type) => type.ToString();
+        static string GetPlayerName(ChessPlayer player) => player.Name;
+        static string GetPlayerName(string player) => new UCIBot(player).name;
 
-        public void StartNewBotMatch(PlayerType botTypeA, PlayerType botTypeB)
+        public void StartNewBotMatch(string botTypeA, string botTypeB)
         {
             EndGame(GameResult.DrawByArbiter, log: false, autoStartNextBotMatch: false);
             botMatchGameIndex = 0;

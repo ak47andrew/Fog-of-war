@@ -30,6 +30,9 @@ namespace ChessChallenge.Application
             UpdateCamera(screenWidth, screenHeight);
 
             ChallengeController controller = new();
+            // Resizing needed bc Raylib is a piece of garbage. Getting scale before scaling is the oposite for no reason at all! 
+            // (See Framework\Application\Helpers\UIHelper. Lines 238-243)
+            // SetWindowSize(Raylib.GetScreenWidth() > Settings.ScreenSizeSmall.X ? Settings.ScreenSizeSmall : Settings.ScreenSizeBig);
 
             while (!Raylib.WindowShouldClose())
             {
@@ -76,7 +79,7 @@ namespace ChessChallenge.Application
         {
         }
 
-        static Vector2 GetSavedWindowSize()
+        public static Vector2 GetSavedWindowSize()
         {
             if (File.Exists(FileHelper.PrefsFilePath))
             {
@@ -102,10 +105,5 @@ namespace ChessChallenge.Application
             bool isBigWindow = Raylib.GetScreenWidth() > Settings.ScreenSizeSmall.X;
             File.WriteAllText(FileHelper.PrefsFilePath, isBigWindow ? "1" : "0");
         }
-
-      
-
     }
-
-
 }
