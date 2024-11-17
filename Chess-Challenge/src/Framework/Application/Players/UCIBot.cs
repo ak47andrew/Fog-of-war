@@ -157,9 +157,7 @@ namespace ChessChallenge.Application
 
             previousPos = board;
 
-            return board.GetLegalMoves()[0];
-
-            // return new Move(move, board);
+            return new Move(move, board);
         }
     }
 }
