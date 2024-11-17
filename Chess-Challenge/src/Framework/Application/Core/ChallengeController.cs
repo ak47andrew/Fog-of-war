@@ -13,12 +13,6 @@ namespace ChessChallenge.Application
 {
     public class ChallengeController
     {
-        // public enum PlayerType
-        // {
-        //     Human,
-        //     MyBot,
-        //     EvilBot
-        // }
 
         // Game state
         readonly Random rng;
@@ -193,13 +187,11 @@ namespace ChessChallenge.Application
 
         ChessPlayer CreatePlayer(string type, bool color = true)
         {
-            return type switch
-            {
-                // PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
-                // PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
-                "" => new ChessPlayer(new HumanPlayer(color ? boardUIWhite : boardUIBlack)),
-                string s => new ChessPlayer(new UCIBot(s), GameDurationMilliseconds)
-            };
+            if (type == ""){
+                return new ChessPlayer(new HumanPlayer(color? boardUIWhite : boardUIBlack));
+            } else {
+                return new ChessPlayer(new UCIBot(type), GameDurationMilliseconds);
+            }
         }
 
         void OnMoveChosen(Move chosenMove)
@@ -395,7 +387,7 @@ namespace ChessChallenge.Application
         }
 
         static string GetPlayerName(ChessPlayer player) => player.Name;
-        static string GetPlayerName(string player) => new UCIBot(player).name;
+        static string GetPlayerName(string player) => player == "" ? "Human" : new UCIBot(player).name;
 
         public void StartNewBotMatch(string botTypeA, string botTypeB)
         {

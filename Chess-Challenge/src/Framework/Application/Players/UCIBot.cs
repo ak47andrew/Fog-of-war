@@ -91,7 +91,7 @@ namespace ChessChallenge.Application
         public UCIBot(string uciCommand){
             command = uciCommand;
             string[] split = command.Split(' ');
-            name = split[split.Length - 1];
+            name = split[0];
             process = new Process
             {
                 StartInfo = new ProcessStartInfo
