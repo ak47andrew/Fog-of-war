@@ -6,23 +6,26 @@ namespace ChessChallenge.Application
     public class ChessPlayer
     {
         // public event Action<Chess.Core.Move>? MoveChosen;
-        public readonly UCIBot? Bot;
+
+        public readonly ChallengeController.PlayerType PlayerType;
+        public readonly IChessBot? Bot;
         public readonly HumanPlayer? Human;
 
         double secondsElapsed;
         int incrementAddedMs;
         int baseTimeMs;
 
-        public ChessPlayer(object instance, int baseTimeMs = int.MaxValue)
+        public ChessPlayer(object instance, ChallengeController.PlayerType type, int baseTimeMs = int.MaxValue)
         {
-            Bot = instance as UCIBot;
+            this.PlayerType = type;
+            Bot = instance as IChessBot;
             Human = instance as HumanPlayer;
             this.baseTimeMs = baseTimeMs;
+
         }
 
         public bool IsHuman => Human != null;
         public bool IsBot => Bot != null;
-        public string Name => IsHuman ? "Human" : Bot.name;
 
         public void Update()
         {
@@ -62,8 +65,6 @@ namespace ChessChallenge.Application
             }
         }
 
-        public override string ToString(){
-            return IsHuman ? "" : Bot.command;
-        }
+
     }
 }

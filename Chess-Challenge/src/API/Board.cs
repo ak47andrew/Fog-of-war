@@ -14,7 +14,7 @@ namespace ChessChallenge.API
 		readonly RepetitionTable repetitionTable;
 
 		readonly PieceList[] allPieceLists;
-		PieceList[] validPieceLists;
+		readonly PieceList[] validPieceLists;
 
         readonly Move[] movesDest;
 		Move[] cachedLegalMoves;
@@ -70,14 +70,6 @@ namespace ChessChallenge.API
 			repetitionTable.Init(board);
         }
 
-		public void UpdatePieceList(int index, Piece[] pieces){
-			if (validPieceLists[index] != null)
-			{
-				PieceList pl = new(pieces, this, validPieceLists[index].TypeOfPieceInList, validPieceLists[index].IsWhitePieceList);
-				validPieceLists[index] = pl;
-			}
-		}
-
 		/// <summary>
 		/// Updates the board state with the given move.
 		/// The move is assumed to be legal, and may result in errors if it is not.
@@ -110,18 +102,38 @@ namespace ChessChallenge.API
 		}
 
 		/// <summary>
-		/// Skip the current turn.
+		/// Try skip the current turn.
+		/// This will fail and return false if in check.
 		/// Note: skipping a turn is not allowed in the game, but it can be used as a search technique.
 		/// Skipped turns can be undone with UndoSkipTurn()
 		/// </summary>
-		public void SkipTurn()
+		public bool TrySkipTurn()
 		{
+			if (IsInCheck())
+			{
+				return false;
+			}
 			board.MakeNullMove();
             OnPositionChanged();
+            return true;
 		}
 
         /// <summary>
-        /// Undo a turn that was succesfully skipped with SkipTurn()
+        /// Forcibly skips the current turn.
+		/// Unlike TrySkipTurn(), this will work even when in check, which has some dangerous side-effects if done:
+		/// 1) Generating 'legal' moves will now include the illegal capture of the king.
+		/// 2) If the skipped turn is undone, the board will now incorrectly report that the position is not check.
+        /// Note: skipping a turn is not allowed in the game, but it can be used as a search technique.
+		/// Skipped turns can be undone with UndoSkipTurn()
+        /// </summary>
+        public void ForceSkipTurn()
+        {
+            board.MakeNullMove();
+            OnPositionChanged();
+        }
+
+        /// <summary>
+        /// Undo a turn that was succesfully skipped with TrySkipTurn() or ForceSkipTurn()
         /// </summary>
         public void UndoSkipTurn()
 		{
@@ -184,7 +196,15 @@ namespace ChessChallenge.API
 			return cachedLegalCaptureMoves;
 		}
 
-		public bool IsKingCaptured() => board.kings[board.MoveColour].Count == 0;
+		/// <summary>
+		/// Test if the player to move is in check in the current position.
+		/// </summary>
+		public bool IsInCheck() => moveGen.IsInitialized ? moveGen.InCheck() : board.IsInCheck();
+
+		/// <summary>
+		/// Test if the current position is checkmate
+		/// </summary>
+		public bool IsInCheckmate() => IsInCheck() && HasZeroLegalMoves();
 
         /// <summary>
         /// Test if the current position is a draw due stalemate, repetition, insufficient material, or 50-move rule.
@@ -193,8 +213,13 @@ namespace ChessChallenge.API
         /// </summary>
         public bool IsDraw()
 		{
-			return IsFiftyMoveDraw() || IsInsufficientMaterial() || IsRepeatedPosition();
+			return IsFiftyMoveDraw() || IsInsufficientMaterial() || IsInStalemate() || IsRepeatedPosition();
 		}
+
+        /// <summary>
+        /// Test if the current position is a draw due to stalemate
+        /// </summary>
+        public bool IsInStalemate() => !IsInCheck() && HasZeroLegalMoves();
 
         /// <summary>
         /// Test if the current position is a draw due to the fifty move rule
@@ -263,6 +288,16 @@ namespace ChessChallenge.API
 		{
 			return validPieceLists;
 		}
+		
+		/// <summary>
+		/// Is the given square attacked by the opponent?
+		/// (opponent being whichever player doesn't currently have the right to move)
+		/// </summary>
+		public bool SquareIsAttackedByOpponent(Square square)
+		{
+			return BitboardHelper.SquareIsSet(moveGen.GetOpponentAttackMap(board), square);
+		}
+
 
 		/// <summary>
 		/// FEN representation of the current position
@@ -418,6 +453,16 @@ namespace ChessChallenge.API
             hasCachedMoves = false;
             hasCachedCaptureMoves = false;
 			hasCachedMoveCount = false;
-        } 
+        }
+
+		bool HasZeroLegalMoves()
+		{
+			if (hasCachedMoveCount)
+			{
+				return cachedMoveCount == 0;
+			}
+			return moveGen.NoLegalMovesInPosition(board);
+		}
+
     }
 }

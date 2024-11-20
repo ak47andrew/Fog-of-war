@@ -1,6 +1,4 @@
 ﻿using Raylib_cs;
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -14,31 +12,6 @@ namespace ChessChallenge.Application
 
         public static void Main()
         {
-            // var process = new Process
-            // {
-            //     StartInfo = new ProcessStartInfo
-            //     {
-            //         FileName = "/home/tumpa/projects/Fog-of-war/Chess-Challenge/src/Bots/output",
-            //         RedirectStandardInput = true,
-            //         RedirectStandardOutput = true,
-            //         RedirectStandardError = true,
-            //         UseShellExecute = false,
-            //         CreateNoWindow = true
-            //     }
-            // };
-
-            // try
-            // {
-            //     process.Start();
-            //     Console.WriteLine("Process started successfully!");
-            // }
-            // catch (Exception ex)
-            // {
-            //     Console.WriteLine($"Error: {ex.Message}");
-            // }
-            // return;
-
-
             Vector2 loadedWindowSize = GetSavedWindowSize();
             int screenWidth = (int)loadedWindowSize.X;
             int screenHeight = (int)loadedWindowSize.Y;
@@ -51,15 +24,12 @@ namespace ChessChallenge.Application
                 }
             }
 
-            Raylib.InitWindow(screenWidth, screenHeight, "For of war Challenge");
+            Raylib.InitWindow(screenWidth, screenHeight, "Chess Coding Challenge");
             Raylib.SetTargetFPS(60);
 
             UpdateCamera(screenWidth, screenHeight);
 
             ChallengeController controller = new();
-            // Resizing needed bc Raylib is a piece of garbage. Getting scale before scaling is the oposite for no reason at all! 
-            // (See Framework\Application\Helpers\UIHelper. Lines 238-243)
-            // SetWindowSize(Raylib.GetScreenWidth() > Settings.ScreenSizeSmall.X ? Settings.ScreenSizeSmall : Settings.ScreenSizeBig);
 
             while (!Raylib.WindowShouldClose())
             {
@@ -106,7 +76,7 @@ namespace ChessChallenge.Application
         {
         }
 
-        public static Vector2 GetSavedWindowSize()
+        static Vector2 GetSavedWindowSize()
         {
             if (File.Exists(FileHelper.PrefsFilePath))
             {
@@ -132,5 +102,10 @@ namespace ChessChallenge.Application
             bool isBigWindow = Raylib.GetScreenWidth() > Settings.ScreenSizeSmall.X;
             File.WriteAllText(FileHelper.PrefsFilePath, isBigWindow ? "1" : "0");
         }
+
+      
+
     }
+
+
 }

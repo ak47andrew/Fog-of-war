@@ -43,10 +43,6 @@ namespace ChessChallenge.Application
             return Path.Combine(Directory.GetCurrentDirectory(), "resources", Path.Combine(localPath));
         }
 
-        public static string GetBotsPath(params string[] localPath){
-            return Path.Combine(Directory.GetCurrentDirectory(), "src", "Bots", Path.Combine(localPath));
-        }
-
         public static string ReadResourceFile(string localPath)
         {
             return File.ReadAllText(GetResourcePath(localPath));

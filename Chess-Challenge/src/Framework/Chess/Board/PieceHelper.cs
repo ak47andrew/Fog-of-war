@@ -12,7 +12,6 @@
         public const int Rook = 4;
         public const int Queen = 5;
         public const int King = 6;
-        public const int Fog = 7;
 
         // Piece Colours
         public const int White = 0;
@@ -38,7 +37,6 @@
         public static readonly int[] PieceIndices =
         {
             WhitePawn, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen, WhiteKing,
-            Fog,
             BlackPawn, BlackKnight, BlackBishop, BlackRook, BlackQueen, BlackKing
         };
 

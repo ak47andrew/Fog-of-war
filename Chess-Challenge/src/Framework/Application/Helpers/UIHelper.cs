@@ -1,14 +1,13 @@
 ﻿using Raylib_cs;
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using static ChessChallenge.Application.FileHelper;
 
 namespace ChessChallenge.Application
 {
     public static class UIHelper
     {
-        static readonly bool SDF_Enabled = false;
+        static readonly bool SDF_Enabled = true;
         const string fontName = "OPENSANS-SEMIBOLD.TTF";
         const int referenceResolution = 1920;
 
@@ -130,134 +129,6 @@ namespace ChessChallenge.Application
                 Raylib.UnloadFont(fontSdf);
                 Raylib.UnloadShader(shader);
             }
-        }
-
-        public class InputBox
-        {
-            public Rectangle LargeBox { get; private set; }
-            public Rectangle SmallBox { get; private set; }
-            public string Text { get; private set; } = "";
-            public bool IsFocused { get; private set; } = false;
-            public bool isScaled = false;
-
-            private Color boxColor;
-            private Color textColor;
-            private Color borderColor;
-            private int fontSize;
-            private int backspaceCooldown = 0;
-
-            public InputBox(Rectangle large, Rectangle small, int fontSize = 20, Color? boxColor = null, Color? textColor = null, Color? borderColor = null)
-            {
-                LargeBox = large;
-                SmallBox = small;
-                this.fontSize = fontSize;
-
-                this.boxColor = boxColor ?? Color.LIGHTGRAY;
-                this.textColor = textColor ?? Color.BLACK;
-                this.borderColor = borderColor ?? Color.GRAY;
-            }
-
-            public void Update()
-            {
-                backspaceCooldown--;
-                // Check for focus when the box is clicked
-                if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_LEFT_BUTTON))
-                {
-                    Vector2 mousePosition = Raylib.GetMousePosition();
-                    IsFocused = Raylib.CheckCollisionPointRec(mousePosition, CurrentBox);
-                }
-                else if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_LEFT_BUTTON))
-                {
-                    // Lose focus if clicked outside the box
-                    IsFocused = false;
-                }
-
-                // Handle keyboard input if focused
-                if (IsFocused)
-                {
-                    HandleTextInput();
-                    HandleCopyPaste();
-                }
-            }
-
-            private void HandleTextInput()
-            {
-                int key = Raylib.GetCharPressed();
-
-                while (key > 0)
-                {
-                    if (key >= 32 && key <= 126) // Allow printable ASCII
-                    {
-                        Text += (char)key;
-                    }
-                    key = Raylib.GetCharPressed();
-                }
-
-                // Handle backspace
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_BACKSPACE) && backspaceCooldown <= 0 && Text.Length > 0)
-                {
-                    Text = Text.Substring(0, Text.Length - 1);
-                    backspaceCooldown = 5;
-                }
-            }
-
-            private static string GetSafeClipboardText()
-            {
-                unsafe
-                {
-                    sbyte* clipboardTextPointer = Raylib.GetClipboardText();
-                    return Marshal.PtrToStringAnsi((IntPtr)clipboardTextPointer) ?? "";
-                }
-            }
-
-
-            private void HandleCopyPaste()
-            {
-                // Copy text to clipboard (CTRL+C)
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_CONTROL) && Raylib.IsKeyPressed(KeyboardKey.KEY_C))
-                {
-                    Raylib.SetClipboardText(Text);
-                }
-
-                // Paste text from clipboard (CTRL+V)
-                if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_CONTROL) && Raylib.IsKeyPressed(KeyboardKey.KEY_V))
-                {
-                    string clipboardText = GetSafeClipboardText();
-                    if (!string.IsNullOrEmpty(clipboardText))
-                    {
-                        Text += clipboardText;
-                    }
-                }
-            }
-
-            public void Draw()
-            {
-                Rectangle box = CurrentBox;
-                
-                // Draw the input box
-                Raylib.DrawRectangleRec(box, boxColor);
-                Raylib.DrawRectangleLinesEx(box, 2, IsFocused ? Color.BLUE : borderColor);
-
-                // Draw the text
-                Raylib.DrawText(Text, (int)box.x + 5, (int)(box.y + (box.height - fontSize) / 2), fontSize, textColor);
-
-                // Draw a blinking cursor when focused
-                if (IsFocused && DateTime.Now.Millisecond / 500 % 2 == 0)
-                {
-                    int textWidth = Raylib.MeasureText(Text, fontSize);
-                    Raylib.DrawLine(
-                        (int)box.x + 5 + textWidth,
-                        (int)(box.y + (box.height - fontSize) / 2),
-                        (int)box.x + 5 + textWidth,
-                        (int)(box.y + (box.height - fontSize) / 2 + fontSize),
-                        textColor
-                    );
-                }
-            }
-
-            private Rectangle CurrentBox => (Program.GetSavedWindowSize() == Settings.ScreenSizeBig && !isScaled) || 
-                                            (Program.GetSavedWindowSize() != Settings.ScreenSizeBig && isScaled)
-                                            ? LargeBox : SmallBox;
         }
     }
 }
