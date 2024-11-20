@@ -1,4 +1,6 @@
 ﻿using Raylib_cs;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -12,6 +14,31 @@ namespace ChessChallenge.Application
 
         public static void Main()
         {
+            // var process = new Process
+            // {
+            //     StartInfo = new ProcessStartInfo
+            //     {
+            //         FileName = "/home/tumpa/projects/Fog-of-war/Chess-Challenge/src/Bots/output",
+            //         RedirectStandardInput = true,
+            //         RedirectStandardOutput = true,
+            //         RedirectStandardError = true,
+            //         UseShellExecute = false,
+            //         CreateNoWindow = true
+            //     }
+            // };
+
+            // try
+            // {
+            //     process.Start();
+            //     Console.WriteLine("Process started successfully!");
+            // }
+            // catch (Exception ex)
+            // {
+            //     Console.WriteLine($"Error: {ex.Message}");
+            // }
+            // return;
+
+
             Vector2 loadedWindowSize = GetSavedWindowSize();
             int screenWidth = (int)loadedWindowSize.X;
             int screenHeight = (int)loadedWindowSize.Y;

@@ -88,6 +88,12 @@ namespace ChessChallenge.Application
             }
             if (NextButtonInRow("Exit (ESC)", ref buttonPos, spacing, buttonSize))
             {
+                if (controller.PlayerBlack.Bot != null){
+                    controller.PlayerBlack.Bot.Stop();
+                }
+                if (controller.PlayerWhite.Bot != null){
+                    controller.PlayerWhite.Bot.Stop();
+                }
                 Environment.Exit(0);
             }
 

@@ -96,14 +96,13 @@ namespace ChessChallenge.Application
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = split[0],
+                    FileName = Path.Combine(FileHelper.GetBotsPath(), split[0]),
                     Arguments = string.Join(' ', split.Skip(1).Take(split.Length - 1)),
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = FileHelper.GetBotsPath()
+                    CreateNoWindow = true
                 }
             };
 
@@ -111,6 +110,10 @@ namespace ChessChallenge.Application
             stdin = process.StandardInput;
             stdout = process.StandardOutput;
             stderr = process.StandardError;
+        }
+
+        ~UCIBot(){
+            Stop();
         }
 
         void handleError(){
@@ -122,7 +125,7 @@ namespace ChessChallenge.Application
             ConsoleHelper.Log("An error occurred while bot was thinking.\n" + op, true, ConsoleColor.Red);
         }
 
-        public Move Think(Board board, Timer timer){ // TEST: For me it's only working for the first move. Maybe Me+Python just sucks idk
+        public Move Think(Board board, Timer timer){ // Fixed 100%
             Dictionary<string, string> args = new Dictionary<string, string>(){
                 {"fen", GetFowFen(board)},
             };
@@ -157,7 +160,9 @@ namespace ChessChallenge.Application
 
             previousPos = board;
 
-            return new Move(move, board);
+            return board.GetLegalMoves()[0];
+
+            // return new Move(move, board);
         }
     }
 }

@@ -16,11 +16,7 @@ namespace ChessChallenge.API
 		public bool IsPromotion => move.IsPromotion;
 		public bool IsCastles => move.MoveFlag == Chess.Move.CastleFlag;
 		public bool IsNull => move.IsNull;
-		public bool IsStartSquareUnkown => move.IsStartSquareUnkown;
-        public bool IsTargetSquareUnkown => move.IsTargetSquareUnkown;
-        public bool IsFullyUnknown => move.IsFullyUnknown;
-        public bool IsFullyKnown => move.IsFullyKnown;
-		public uint RawValue => move.Value;
+		public ushort RawValue => move.Value;
 		public static readonly Move NullMove = new();
 
 		readonly Chess.Move move;
@@ -75,6 +71,6 @@ namespace ChessChallenge.API
 		public static bool operator ==(Move lhs, Move rhs) => lhs.Equals(rhs);
 		public static bool operator !=(Move lhs, Move rhs) => !lhs.Equals(rhs);
 		public override bool Equals(object? obj) => base.Equals(obj);
-		public override int GetHashCode() => (int)RawValue;
+		public override int GetHashCode() => RawValue;
 	}
 }

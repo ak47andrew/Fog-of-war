@@ -88,6 +88,12 @@ namespace ChessChallenge.Application
             int fenIndex = isGameWithHuman ? 0 : botMatchGameIndex / 2;
             board.LoadPosition(botMatchStartFens[fenIndex]);
 
+            if (PlayerBlack != null && PlayerBlack.Bot != null){
+                PlayerBlack.Bot.Stop();
+            }
+            if (PlayerWhite != null && PlayerWhite.Bot != null){
+                PlayerWhite.Bot.Stop();
+            }
             // Player Setup
             PlayerWhite = CreatePlayer(whiteType, true);
             PlayerBlack = CreatePlayer(blackType, false);
