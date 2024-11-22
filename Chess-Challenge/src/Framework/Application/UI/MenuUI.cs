@@ -2,11 +2,14 @@
 using System.Numerics;
 using System;
 using System.IO;
+using ChessChallenge.API;
 
 namespace ChessChallenge.Application
 {
     public static class MenuUI
     {
+        static bool isVisulising = false;
+
         public static void DrawButtons(ChallengeController controller)
         {
             Vector2 buttonPos = UIHelper.Scale(new Vector2(260, 210));
@@ -43,6 +46,10 @@ namespace ChessChallenge.Application
                 File.WriteAllText(fullPath, pgns);
                 ConsoleHelper.Log("Saved games to " + fullPath, false, ConsoleColor.Blue);
             }
+            if (NextButtonInRow("Toggle Fog", ref buttonPos, spacing, buttonSize))
+            {
+                isVisulising = !isVisulising;
+            }
             if (NextButtonInRow("Rules & Help", ref buttonPos, spacing, buttonSize))
             {
                 FileHelper.OpenUrl("https://github.com/SebLague/Chess-Challenge");
@@ -68,6 +75,12 @@ namespace ChessChallenge.Application
             if (NextButtonInRow("Exit (ESC)", ref buttonPos, spacing, buttonSize))
             {
                 Environment.Exit(0);
+            }
+
+            if (isVisulising && controller.isPlaying) {
+                BitboardHelper.VisualizeBitboard(controller.board.fogBitboard);
+            } else {
+                BitboardHelper.StopVisualizingBitboard();
             }
 
             bool NextButtonInRow(string name, ref Vector2 pos, float spacingY, Vector2 size)

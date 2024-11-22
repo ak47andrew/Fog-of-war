@@ -23,8 +23,8 @@ namespace ChessChallenge.Application
         static readonly Color nameCol = new(67, 204, 101, 255);
 
         // Bitboard debug mode
-        static readonly Color bitboardColZERO = new(61, 121, 217, 200);
-        static readonly Color bitboardColONE = new(252, 43, 92, 200);
+        static readonly Color bitboardColZERO = new(207, 203, 192, 255);
+        static readonly Color bitboardColONE = new(252, 43, 92, 0);
 
         // Colour state
         Color topTextCol;
@@ -83,10 +83,6 @@ namespace ChessChallenge.Application
             // Update
             this.board = new(board);
             lastMove = Move.NullMove;
-            if (board.IsInCheck())
-            {
-                OverrideSquareColour(board.KingSquare[board.MoveColourIndex], HighlightType.Check);
-            }
         }
 
         public void UpdatePosition(Board board, Move moveMade, bool animate = false)
@@ -370,7 +366,7 @@ namespace ChessChallenge.Application
             Vector2 squarePos = GetSquarePos(file, rank, whitePerspective);
             Raylib.DrawRectangle((int)squarePos.X, (int)squarePos.Y, squareSize, squareSize, col);
             Vector2 textPos = squarePos + new Vector2(squareSize, squareSize) / 2;
-            DrawText(isSet ? "1" : "0", textPos, 50, 0, Color.WHITE, AlignH.Centre);
+            // DrawText(isSet ? "1" : "0", textPos, 50, 0, Color.WHITE, AlignH.Centre);
         }
 
         static Vector2 GetSquarePos(int file, int rank, bool whitePerspective)

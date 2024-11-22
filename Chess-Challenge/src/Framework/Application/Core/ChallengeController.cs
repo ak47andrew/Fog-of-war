@@ -25,8 +25,8 @@ namespace ChessChallenge.Application
         // Game state
         readonly Random rng;
         int gameID;
-        bool isPlaying;
-        Board board;
+        public bool isPlaying;
+        public Board board;
         public ChessPlayer PlayerWhite { get; private set; }
         public ChessPlayer PlayerBlack {get;private set;}
 
@@ -389,7 +389,6 @@ namespace ChessChallenge.Application
 
         public void DrawOverlay()
         {
-            BotBrainCapacityUI.Draw(tokenCount, debugTokenCount, MaxTokenCount);
             MenuUI.DrawButtons(this);
             MatchStatsUI.DrawMatchStats(this);
         }
