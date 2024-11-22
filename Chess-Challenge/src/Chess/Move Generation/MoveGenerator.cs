@@ -258,7 +258,7 @@ namespace ChessChallenge.Chess
             }
 
             // Captures
-            GeneratePawnCaptures(moves, pawns, enemyPieces, pushDir);
+            GeneratePawnCaptures(moves, pawns, enemyPieces & (~promotionRankMask), pushDir);
 
             // Promotions
             while (pushPromotions != 0)
