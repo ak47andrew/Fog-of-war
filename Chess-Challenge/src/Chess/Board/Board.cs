@@ -531,7 +531,7 @@ namespace ChessChallenge.Chess
 
         void UpdateFoW(){
             MoveGenerator moveGenerator = new();
-            Move[] moves = moveGenerator.GenerateMoves(this).ToArray();
+            Move[] moves = moveGenerator.GenerateFowMoves(this).ToArray();
 
             fogBitboard = colourBitboards[IsWhiteToMove ? WhiteIndex : BlackIndex];
             
