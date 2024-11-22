@@ -83,7 +83,6 @@ namespace ChessChallenge.API
 				board.MakeMove(new Chess.Move(move.RawValue), inSearch: true);
 				repetitionTable.Push(ZobristKey, move.IsCapture || move.MovePieceType == PieceType.Pawn);
                 depth++;
-
             }
 		}
 
@@ -107,12 +106,8 @@ namespace ChessChallenge.API
 		/// Note: skipping a turn is not allowed in the game, but it can be used as a search technique.
 		/// Skipped turns can be undone with UndoSkipTurn()
 		/// </summary>
-		public bool TrySkipTurn()
+		public bool SkipTurn()
 		{
-			if (IsInCheck())
-			{
-				return false;
-			}
 			board.MakeNullMove();
             OnPositionChanged();
             return true;
@@ -196,15 +191,7 @@ namespace ChessChallenge.API
 			return cachedLegalCaptureMoves;
 		}
 
-		/// <summary>
-		/// Test if the player to move is in check in the current position.
-		/// </summary>
-		public bool IsInCheck() => moveGen.IsInitialized ? moveGen.InCheck() : board.IsInCheck();
-
-		/// <summary>
-		/// Test if the current position is checkmate
-		/// </summary>
-		public bool IsInCheckmate() => IsInCheck() && HasZeroLegalMoves();
+		public bool IsKingCaptured() => board.kings[board.MoveColour].Count == 0;
 
         /// <summary>
         /// Test if the current position is a draw due stalemate, repetition, insufficient material, or 50-move rule.
@@ -213,13 +200,8 @@ namespace ChessChallenge.API
         /// </summary>
         public bool IsDraw()
 		{
-			return IsFiftyMoveDraw() || IsInsufficientMaterial() || IsInStalemate() || IsRepeatedPosition();
+			return IsFiftyMoveDraw() || IsInsufficientMaterial() || IsRepeatedPosition();
 		}
-
-        /// <summary>
-        /// Test if the current position is a draw due to stalemate
-        /// </summary>
-        public bool IsInStalemate() => !IsInCheck() && HasZeroLegalMoves();
 
         /// <summary>
         /// Test if the current position is a draw due to the fifty move rule
@@ -289,16 +271,6 @@ namespace ChessChallenge.API
 			return validPieceLists;
 		}
 		
-		/// <summary>
-		/// Is the given square attacked by the opponent?
-		/// (opponent being whichever player doesn't currently have the right to move)
-		/// </summary>
-		public bool SquareIsAttackedByOpponent(Square square)
-		{
-			return BitboardHelper.SquareIsSet(moveGen.GetOpponentAttackMap(board), square);
-		}
-
-
 		/// <summary>
 		/// FEN representation of the current position
 		/// </summary>
@@ -454,15 +426,5 @@ namespace ChessChallenge.API
             hasCachedCaptureMoves = false;
 			hasCachedMoveCount = false;
         }
-
-		bool HasZeroLegalMoves()
-		{
-			if (hasCachedMoveCount)
-			{
-				return cachedMoveCount == 0;
-			}
-			return moveGen.NoLegalMovesInPosition(board);
-		}
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ChessChallenge.Chess
 {
@@ -44,6 +45,7 @@ namespace ChessChallenge.Chess
         // Bitboards for all pieces of either colour (all white pieces, all black pieces)
         public ulong[] colourBitboards;
         public ulong allPiecesBitboard;
+        public ulong fogBitboard;
         public ulong FriendlyOrthogonalSliders;
         public ulong FriendlyDiagonalSliders;
         public ulong EnemyOrthogonalSliders;
@@ -65,10 +67,6 @@ namespace ChessChallenge.Chess
 
         // piece count excluding pawns and kings
         public int totalPieceCountWithoutPawnsAndKings;
-        bool cachedInCheckValue;
-        bool hasCachedInCheckValue;
-
-
 
         public Board(Board? source = null)
         {
@@ -82,22 +80,6 @@ namespace ChessChallenge.Chess
                 }
             }
         }
-
-
-        // Is current player in check?
-        // Note: caches check value so calling multiple times does not require recalculating
-        public bool IsInCheck()
-        {
-            if (hasCachedInCheckValue)
-            {
-                return cachedInCheckValue;
-            }
-            cachedInCheckValue = CalculateInCheckState();
-            hasCachedInCheckValue = true;
-
-            return cachedInCheckValue;
-        }
-
 
         // Update piece lists / bitboards based on given move info.
         // Note that this does not account for the following things, which must be handled separately:
@@ -113,6 +95,7 @@ namespace ChessChallenge.Chess
             pieceLists[piece].MovePiece(startSquare, targetSquare);
             Square[startSquare] = PieceHelper.None;
             Square[targetSquare] = piece;
+            // UpdateFoW();
         }
 
         // Make a move on the board
@@ -151,7 +134,7 @@ namespace ChessChallenge.Chess
                     captureSquare = targetSquare + (IsWhiteToMove ? -8 : 8);
                     Square[captureSquare] = PieceHelper.None;
                 }
-                if (capturedPieceType != PieceHelper.Pawn)
+                if (capturedPieceType != PieceHelper.Pawn && capturedPieceType != PieceHelper.King)
                 {
                     totalPieceCountWithoutPawnsAndKings--;
                 }
@@ -278,7 +261,6 @@ namespace ChessChallenge.Chess
             GameState newState = new(capturedPieceType, newEnPassantFile, newCastlingRights, newFiftyMoveCounter, newZobristKey);
             gameStateHistory.Push(newState);
             currentGameState = newState;
-            hasCachedInCheckValue = false;
 
             if (!inSearch)
             {
@@ -286,6 +268,8 @@ namespace ChessChallenge.Chess
                 RepetitionPositionHistoryFen.Push(FenUtility.CurrentFen(this));
                 AllGameMoves.Add(move);
             }
+
+            UpdateFoW();
         }
 
         // Undo a move previously made on the board
@@ -386,7 +370,8 @@ namespace ChessChallenge.Chess
             gameStateHistory.Pop();
             currentGameState = gameStateHistory.Peek();
             plyCount--;
-            hasCachedInCheckValue = false;
+
+            UpdateFoW();
         }
 
         // Switch side to play without making a move (NOTE: must not be in check when called)
@@ -404,8 +389,6 @@ namespace ChessChallenge.Chess
             currentGameState = newState;
             gameStateHistory.Push(currentGameState);
             UpdateSliderBitboards();
-            hasCachedInCheckValue = true;
-            cachedInCheckValue = false;
         }
 
         public void UnmakeNullMove()
@@ -416,50 +399,6 @@ namespace ChessChallenge.Chess
             gameStateHistory.Pop();
             currentGameState = gameStateHistory.Peek();
             UpdateSliderBitboards();
-            hasCachedInCheckValue = true;
-            cachedInCheckValue = false;
-        }
-
-
-
-        // Calculate in check value
-        // Call IsInCheck instead for automatic caching of value
-        public bool CalculateInCheckState()
-        {
-            int kingSquare = KingSquare[MoveColourIndex];
-            ulong blockers = allPiecesBitboard;
-
-            if (EnemyOrthogonalSliders != 0)
-            {
-                ulong rookAttacks = Magic.GetRookAttacks(kingSquare, blockers);
-                if ((rookAttacks & EnemyOrthogonalSliders) != 0)
-                {
-                    return true;
-                }
-            }
-            if (EnemyDiagonalSliders != 0)
-            {
-                ulong bishopAttacks = Magic.GetBishopAttacks(kingSquare, blockers);
-                if ((bishopAttacks & EnemyDiagonalSliders) != 0)
-                {
-                    return true;
-                }
-            }
-
-            ulong enemyKnights = pieceBitboards[PieceHelper.MakePiece(PieceHelper.Knight, OpponentColour)];
-            if ((Bits.KnightAttacks[kingSquare] & enemyKnights) != 0)
-            {
-                return true;
-            }
-
-            ulong enemyPawns = pieceBitboards[PieceHelper.MakePiece(PieceHelper.Pawn, OpponentColour)];
-            ulong pawnAttackMask = IsWhiteToMove ? Bits.WhitePawnAttacks[kingSquare] : Bits.BlackPawnAttacks[kingSquare];
-            if ((pawnAttackMask & enemyPawns) != 0)
-            {
-                return true;
-            }
-
-            return false;
         }
 
 
@@ -527,6 +466,7 @@ namespace ChessChallenge.Chess
 
             gameStateHistory.Push(currentGameState);
             RepetitionPositionHistoryFen.Push(FenUtility.CurrentFen(this));
+            UpdateFoW();
         }
 
         void UpdateSliderBitboards()
@@ -586,7 +526,19 @@ namespace ChessChallenge.Chess
             pieceBitboards = new ulong[PieceHelper.MaxPieceIndex + 1];
             colourBitboards = new ulong[2];
             allPiecesBitboard = 0;
+            fogBitboard = 0;
         }
 
+        void UpdateFoW(){
+            MoveGenerator moveGenerator = new();
+            Move[] moves = moveGenerator.GenerateMoves(this).ToArray();
+
+            fogBitboard = colourBitboards[IsWhiteToMove ? WhiteIndex : BlackIndex];
+            
+            foreach (var item in moves)
+            {
+                fogBitboard |= 0b1ul << item.TargetSquareIndex;
+            }
+        }
     }
 }

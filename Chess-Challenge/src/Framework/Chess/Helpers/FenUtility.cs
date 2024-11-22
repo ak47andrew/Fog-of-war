@@ -131,27 +131,12 @@ namespace ChessChallenge.Chess
             int epCaptureSquare = new Coord(epFileIndex, epRankIndex).SquareIndex;
             int friendlyPawn = PieceHelper.MakePiece(PieceHelper.Pawn, board.MoveColour);
 
-
-
             return CanCapture(captureFromA) || CanCapture(captureFromB);
-
 
             bool CanCapture(Coord from)
             {
                 bool isPawnOnSquare = board.Square[from.SquareIndex] == friendlyPawn;
-                if (from.IsValidSquare() && isPawnOnSquare)
-                {
-                    Move move = new Move(from.SquareIndex, epCaptureSquare, Move.EnPassantCaptureFlag);
-                    board.MakeMove(move);
-                    board.MakeNullMove();
-                    bool wasLegalMove = !board.CalculateInCheckState();
-
-                    board.UnmakeNullMove();
-                    board.UndoMove(move);
-                    return wasLegalMove;
-                }
-
-                return false;
+                return from.IsValidSquare() && isPawnOnSquare;
             }
         }
 
