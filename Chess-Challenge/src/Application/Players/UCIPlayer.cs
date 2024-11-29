@@ -4,6 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using System.Net.WebSockets;
+using System.Threading.Tasks;
+using System.Text;
+using System.Net.NetworkInformation;
+using System.Net;
+using System.Linq;
 
 namespace ChessChallenge.Application
 {
@@ -12,42 +18,114 @@ namespace ChessChallenge.Application
         private readonly string enginePath;
         private readonly string engineName;
         private readonly Process engineProcess;
-        private readonly StreamWriter stdin;
-        private readonly StreamReader stdout;
-        private readonly StreamReader stderr;
+        private readonly ClientWebSocket webSocket;
+        private readonly int port;
         private Board prevBoard;
+        private readonly CancellationTokenSource cancellationSource;
 
         public bool IsBroken => engineProcess == null || engineProcess.HasExited;
+
+        private int FindRandomUnusedPort()
+        {
+            // Get list of used ports
+            var usedPorts = IPGlobalProperties.GetIPGlobalProperties()
+                .GetActiveTcpListeners()
+                .ToArray()
+                .Select(x => x.Port)
+                .ToHashSet();
+
+            // Find random unused port between 49152-65535 (dynamic port range)
+            Random rnd = new Random();
+            int port;
+            do
+            {
+                port = rnd.Next(49152, 65536);
+            } while (usedPorts.Contains(port));
+
+            return port;
+        }
 
         public UCIPlayer(string path)
         {
             enginePath = path;
             engineName = Path.GetFileNameWithoutExtension(path);
-            
+            webSocket = new ClientWebSocket();
+            cancellationSource = new CancellationTokenSource();
+            port = FindRandomUnusedPort();
+
             try
             {
+                // Start process with port as argument
                 engineProcess = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = enginePath,
+                        Arguments = port.ToString(), // Pass port as argument
                         UseShellExecute = false,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
                         CreateNoWindow = true
                     }
                 };
 
                 engineProcess.Start();
-                stdin = engineProcess.StandardInput;
-                stdout = engineProcess.StandardOutput;
-                stderr = engineProcess.StandardError;
+
+                // Connect WebSocket
+                ConnectWebSocket().Wait();
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Failed to start engine process: {e.Message}");
                 Dispose();
+            }
+        }
+
+        private async Task ConnectWebSocket()
+        {
+            // Wait briefly for process to start listening
+            await Task.Delay(100);
+            
+            // Connect to WebSocket endpoint
+            var uri = new Uri($"ws://localhost:{port}");
+            await webSocket.ConnectAsync(uri, cancellationSource.Token);
+        }
+
+        private async Task SendMessageAsync(string message)
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(bytes),
+                WebSocketMessageType.Text,
+                true,
+                cancellationSource.Token);
+        }
+
+        private async Task<string> ReceiveMessageAsync(TimeSpan timeout)
+        {
+            var buffer = new byte[4096];
+            var received = new StringBuilder();
+            
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationSource.Token);
+            cts.CancelAfter(timeout);
+
+            try
+            {
+                while (true)
+                {
+                    var result = await webSocket.ReceiveAsync(
+                        new ArraySegment<byte>(buffer),
+                        cts.Token);
+
+                    received.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
+
+                    if (result.EndOfMessage)
+                        break;
+                }
+
+                return received.ToString();
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
             }
         }
 
@@ -73,47 +151,15 @@ namespace ChessChallenge.Application
                 };
 
                 string jsonState = JsonSerializer.Serialize(gameState);
-                stdin.WriteLine(jsonState);
-                stdin.Flush();
+                SendMessageAsync(jsonState).Wait();
 
-                // Add timeout to prevent infinite waiting
-                var startTime = DateTime.Now;
                 var timeout = TimeSpan.FromMilliseconds(timer.MillisecondsRemaining);
+                string moveStr = ReceiveMessageAsync(timeout).Result;
 
-                while ((DateTime.Now - startTime) < timeout)
+                if (!string.IsNullOrEmpty(moveStr))
                 {
-                    // Add small delay to prevent CPU thrashing
-                    Thread.Sleep(1);
-
-                    // Check stderr for errors or debug info
-                    while (stderr.Peek() >= 0)
-                    {
-                        string? error = stderr.ReadLine();
-                        if (string.IsNullOrEmpty(error)) continue;
-
-                        if (error[0] == '!')
-                        {
-                            Console.WriteLine($"Engine debug: {error.Substring(1)}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Engine error: {error}");
-                            Dispose();
-                            return Move.NullMove;
-                        }
-                    }
-
-                    // Check for move from stdout
-                    if (stdout.Peek() >= 0)
-                    {
-                        string? moveStr = stdout.ReadLine();
-                        if (!string.IsNullOrEmpty(moveStr))
-                        {
-                            prevBoard = new Board(board);
-                            Move move = ParseMove(moveStr, board);
-                            return move;
-                        }
-                    }
+                    prevBoard = new Board(board);
+                    return ParseMove(moveStr, board);
                 }
 
                 Console.WriteLine("Engine timed out");
@@ -135,7 +181,6 @@ namespace ChessChallenge.Application
                 MoveGenerator movegen = new();
                 Move[] moves = movegen.GenerateMoves(board).ToArray();
                 return moves[rng.Next(moves.Length)];
-                // return MoveUtility.GetMoveFromUCIName(moveStr, board);
             }
             catch (Exception e)
             {
@@ -148,15 +193,21 @@ namespace ChessChallenge.Application
         {
             try
             {
-                stdin?.Close();
-                stdout?.Close();
-                stderr?.Close();
+                cancellationSource.Cancel();
+                
+                if (webSocket.State == WebSocketState.Open)
+                {
+                    webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disposing", CancellationToken.None).Wait();
+                }
+                webSocket.Dispose();
                 
                 if (engineProcess != null && !engineProcess.HasExited)
                 {
                     engineProcess.Kill();
                     engineProcess.Dispose();
                 }
+
+                cancellationSource.Dispose();
             }
             catch (Exception e)
             {
