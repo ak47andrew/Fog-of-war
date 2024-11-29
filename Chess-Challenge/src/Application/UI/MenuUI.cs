@@ -17,19 +17,15 @@ namespace ChessChallenge.Application
             float breakSpacing = spacing * 0.6f;
 
             // Game Buttons
-            if (NextButtonInRow("Human vs MyBot", ref buttonPos, spacing, buttonSize))
+            if (NextButtonInRow("Human vs Engine", ref buttonPos, spacing, buttonSize))
             {
                 var whiteType = controller.HumanWasWhiteLastGame ? ChallengeController.PlayerType.MyBot : ChallengeController.PlayerType.Human;
                 var blackType = !controller.HumanWasWhiteLastGame ? ChallengeController.PlayerType.MyBot : ChallengeController.PlayerType.Human;
                 controller.StartNewGame(whiteType, blackType);
             }
-            if (NextButtonInRow("MyBot vs MyBot", ref buttonPos, spacing, buttonSize))
+            if (NextButtonInRow("Engine vs Engine", ref buttonPos, spacing, buttonSize))
             {
                 controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.MyBot);
-            }
-            if (NextButtonInRow("MyBot vs EvilBot", ref buttonPos, spacing, buttonSize))
-            {
-                controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.EvilBot);
             }
 
             // Page buttons

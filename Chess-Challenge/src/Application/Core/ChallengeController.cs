@@ -17,8 +17,7 @@ namespace ChessChallenge.Application
         public enum PlayerType
         {
             Human,
-            MyBot,
-            EvilBot
+            MyBot
         }
 
         // Game state
