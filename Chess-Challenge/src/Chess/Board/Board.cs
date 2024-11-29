@@ -25,6 +25,11 @@ namespace ChessChallenge.Chess
         public int MoveColourIndex => IsWhiteToMove ? WhiteIndex : BlackIndex;
         public int OpponentColourIndex => IsWhiteToMove ? BlackIndex : WhiteIndex;
 
+        public bool WhiteKingside => (currentGameState.castlingRights & 1) == 1;
+        public bool WhiteQueenside => (currentGameState.castlingRights >> 1 & 1) == 1;
+        public bool BlackKingside => (currentGameState.castlingRights >> 2 & 1) == 1;
+        public bool BlackQueenside => (currentGameState.castlingRights >> 3 & 1) == 1;
+
         // Stores piece code for each square on the board
         public int[] Square;
 

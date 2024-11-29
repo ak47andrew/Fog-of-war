@@ -86,15 +86,11 @@ namespace ChessChallenge.Chess
             fen += (board.IsWhiteToMove) ? 'w' : 'b';
 
             // Castling
-            bool whiteKingside = (board.currentGameState.castlingRights & 1) == 1;
-            bool whiteQueenside = (board.currentGameState.castlingRights >> 1 & 1) == 1;
-            bool blackKingside = (board.currentGameState.castlingRights >> 2 & 1) == 1;
-            bool blackQueenside = (board.currentGameState.castlingRights >> 3 & 1) == 1;
             fen += ' ';
-            fen += (whiteKingside) ? "K" : "";
-            fen += (whiteQueenside) ? "Q" : "";
-            fen += (blackKingside) ? "k" : "";
-            fen += (blackQueenside) ? "q" : "";
+            fen += board.WhiteKingside ? "K" : "";
+            fen += board.WhiteQueenside ? "Q" : "";
+            fen += board.BlackKingside ? "k" : "";
+            fen += board.BlackQueenside ? "q" : "";
             fen += ((board.currentGameState.castlingRights) == 0) ? "-" : "";
 
             // En-passant
