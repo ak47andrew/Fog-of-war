@@ -8,7 +8,6 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using System.Text;
 using System.Net.NetworkInformation;
-using System.Net;
 using System.Linq;
 
 namespace ChessChallenge.Application
