@@ -252,6 +252,8 @@ namespace ChessChallenge.Application
         {
             if (isPlaying)
             {
+                Program.ClearAllProcesses();
+                
                 isPlaying = false;
                 isWaitingToPlayMove = false;
                 gameID = -1;

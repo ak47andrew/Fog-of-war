@@ -1,4 +1,6 @@
 ﻿using Raylib_cs;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -47,6 +49,7 @@ namespace ChessChallenge.Application
                 Raylib.EndDrawing();
             }
 
+            ClearAllProcesses();
             Raylib.CloseWindow();
 
             controller.Release();
@@ -103,8 +106,22 @@ namespace ChessChallenge.Application
             File.WriteAllText(FileHelper.PrefsFilePath, isBigWindow ? "1" : "0");
         }
 
-      
-
+        public static void ClearAllProcesses(){
+            // Console.WriteLine("Killing all 'engine' processes...");
+            var processes = Process.GetProcessesByName("engine");
+            foreach (var process in processes)
+            {
+                try
+                {
+                    // Console.WriteLine($"Killed process {process.Id} ({process.MainModule?.FileName})");
+                    process.Kill();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error killing process {process.Id}: {e.Message}");
+                }
+            }
+        }
     }
 
 

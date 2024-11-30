@@ -46,6 +46,7 @@ namespace ChessChallenge.Application
 
         public UCIPlayer(string path)
         {
+            Console.WriteLine("Bot created");
             enginePath = path;
             engineName = Path.GetFileNameWithoutExtension(path);
             webSocket = new ClientWebSocket();
@@ -81,7 +82,7 @@ namespace ChessChallenge.Application
         private async Task ConnectWebSocket()
         {
             // Wait briefly for process to start listening
-            await Task.Delay(100);
+            await Task.Delay(Settings.wsTimeout);
             
             // Connect to WebSocket endpoint
             var uri = new Uri($"ws://localhost:{port}");
@@ -192,20 +193,7 @@ namespace ChessChallenge.Application
         {
             try
             {
-                cancellationSource.Cancel();
-                
-                if (webSocket.State == WebSocketState.Open)
-                {
-                    webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Disposing", CancellationToken.None).Wait();
-                }
-                webSocket.Dispose();
-                
-                if (engineProcess != null && !engineProcess.HasExited)
-                {
-                    engineProcess.Kill();
-                    engineProcess.Dispose();
-                }
-
+                engineProcess?.Dispose();
                 cancellationSource.Dispose();
             }
             catch (Exception e)
