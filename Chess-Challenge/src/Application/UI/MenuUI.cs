@@ -51,17 +51,9 @@ namespace ChessChallenge.Application
                     controller.boardUI.VisualizeBitboard(controller.board.fogBitboard);
                 }
             }
-            if (NextButtonInRow("Rules & Help", ref buttonPos, spacing, buttonSize))
-            {
-                FileHelper.OpenUrl("https://github.com/SebLague/Chess-Challenge");
-            }
-            if (NextButtonInRow("Documentation", ref buttonPos, spacing, buttonSize))
-            {
-                FileHelper.OpenUrl("https://seblague.github.io/chess-coding-challenge/documentation/");
-            }
             if (NextButtonInRow("Submission Page", ref buttonPos, spacing, buttonSize))
             {
-                FileHelper.OpenUrl("https://forms.gle/6jjj8jxNQ5Ln53ie6");
+                FileHelper.OpenUrl("https://forms.gle/3RFQgU6Z12UFDKnU6");
             }
 
             // Window and quit buttons
