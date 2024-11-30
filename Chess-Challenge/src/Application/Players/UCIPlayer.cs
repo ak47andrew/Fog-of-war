@@ -138,8 +138,8 @@ namespace ChessChallenge.Application
             {
                 var gameState = new
                 {
-                    fen = FenUtility.CurrentFen(board),
-                    prev = prevBoard != null ? FenUtility.CurrentFen(prevBoard) : "",
+                    fen = FenUtility.CurrentFoWFen(board),
+                    prev = prevBoard != null ? FenUtility.CurrentFoWFen(prevBoard) : "",
                     time = timer.MillisecondsRemaining,
                     inc = timer.IncrementMilliseconds,
                     isWhite = board.IsWhiteToMove,
@@ -167,6 +167,7 @@ namespace ChessChallenge.Application
             }
             catch (Exception e)
             {
+                throw e;
                 Console.WriteLine($"Error during engine communication: {e.Message}");
                 Dispose();
                 return Move.NullMove;

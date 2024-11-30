@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace ChessChallenge.Chess
 {
@@ -63,7 +64,7 @@ namespace ChessChallenge.Chess
                                 pieceChar = 'P';
                                 break;
                         }
-                        fen += (isBlack) ? pieceChar.ToString().ToLower() : pieceChar.ToString();
+                        fen += isBlack ? pieceChar.ToString().ToLower() : pieceChar.ToString();
                     }
                     else
                     {
@@ -80,6 +81,7 @@ namespace ChessChallenge.Chess
                     fen += '/';
                 }
             }
+
 
             // Side to move
             fen += ' ';
@@ -136,61 +138,97 @@ namespace ChessChallenge.Chess
             }
         }
 
-        public static string FlipFen(string fen)
-        {
-            string flippedFen = "";
-            string[] sections = fen.Split(' ');
-
-            List<char> invertedFenChars = new();
-            string[] fenRanks = sections[0].Split('/');
-
-            for (int i = fenRanks.Length - 1; i >= 0; i--)
+        private static int[] GetAvailableSquares(Board board){
+            Move[] moves = new MoveGenerator().GenerateFowMoves(board).ToArray();
+            List<int> availableSquares = new List<int>();
+            foreach (Move move in moves)
             {
-                string rank = fenRanks[i];
-                foreach (char c in rank)
-                {
-                    flippedFen += InvertCase(c);
-                }
-                if (i != 0)
-                {
-                    flippedFen += '/';
-                }
+                availableSquares.Add(move.StartSquareIndex);
+                availableSquares.Add(move.TargetSquareIndex);
             }
-
-            flippedFen += " " + (sections[1][0] == 'w' ? 'b' : 'w');
-            string castlingRights = sections[2];
-            string flippedRights = "";
-            foreach (char c in "kqKQ")
+            foreach (PieceList pl in board.pieceLists)
             {
-                if (castlingRights.Contains(c))
+                if (pl != null && pl.Count != 0 && PieceHelper.IsColour(board.Square[pl.occupiedSquares[0]], 
+                board.IsWhiteToMove ? PieceHelper.White : PieceHelper.Black))
                 {
-                    flippedRights += InvertCase(c);
+                    for (int i = 0; i < pl.Count; i++)
+                    {
+                        availableSquares.Add(pl.occupiedSquares[i]);
+                    }
                 }
             }
-            flippedFen += " " + (flippedRights.Length == 0 ? "-" : flippedRights);
-
-            string ep = sections[3];
-            string flippedEp = ep[0] + "";
-            if (ep.Length > 1)
-            {
-                flippedEp += ep[1] == '6' ? '3' : '6';
-            }
-            flippedFen += " " + flippedEp;
-            flippedFen += " " + sections[4] + " " + sections[5];
-
-
-            return flippedFen;
-
-            char InvertCase(char c)
-            {
-                if (char.IsLower(c))
-                {
-                    return char.ToUpper(c);
-                }
-                return char.ToLower(c);
-            }
+            return availableSquares.ToArray();
         }
 
+        public static string CurrentFoWFen(Board board, bool alwaysIncludeEPSquare = true)
+        {
+            int[] sqs = GetAvailableSquares(board);
+            string fen = "";
+            for (int rank = 7; rank >= 0; rank--)
+            {
+                int numEmptyFiles = 0;
+                for (int file = 0; file < 8; file++)
+                {
+                    int i = rank * 8 + file; // Linear index for the square.
+                    int piece = board.Square[i];
+                    bool isFogged = !sqs.Contains(i);
+
+                    if (isFogged)
+                    {
+                        // Square is under fog; reset numEmptyFiles and add '?' to the FEN.
+                        if (numEmptyFiles != 0)
+                        {
+                            fen += numEmptyFiles;
+                            numEmptyFiles = 0;
+                        }
+                        fen += "?";
+                    }
+                    else if (piece != 0)
+                    {
+                        // Square contains a piece; reset numEmptyFiles and add the piece char.
+                        if (numEmptyFiles != 0)
+                        {
+                            fen += numEmptyFiles;
+                            numEmptyFiles = 0;
+                        }
+                        bool isBlack = PieceHelper.IsColour(piece, PieceHelper.Black);
+                        int pieceType = PieceHelper.PieceType(piece);
+                        char pieceChar = pieceType switch
+                        {
+                            PieceHelper.Rook => 'R',
+                            PieceHelper.Knight => 'N',
+                            PieceHelper.Bishop => 'B',
+                            PieceHelper.Queen => 'Q',
+                            PieceHelper.King => 'K',
+                            PieceHelper.Pawn => 'P',
+                            _ => ' ' // Default case for invalid piece type.
+                        };
+                        fen += isBlack ? char.ToLower(pieceChar) : pieceChar;
+                    }
+                    else
+                    {
+                        // Square is empty; increment the empty square counter.
+                        numEmptyFiles++;
+                    }
+                }
+
+                // Append remaining empty squares for the rank.
+                if (numEmptyFiles != 0)
+                {
+                    fen += numEmptyFiles;
+                }
+
+                // Add rank separator unless it's the last rank.
+                if (rank != 0)
+                {
+                    fen += '/';
+                }
+            }
+
+            return fen;
+        }
+
+        
         public readonly struct PositionInfo
         {
             public readonly string fen;
