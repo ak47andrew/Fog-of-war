@@ -252,7 +252,7 @@ namespace ChessChallenge.Application
         {
             if (isPlaying)
             {
-                Program.ClearAllProcesses();
+                // Program.ClearAllProcesses();
 
                 isPlaying = false;
                 isWaitingToPlayMove = false;

@@ -49,7 +49,7 @@ namespace ChessChallenge.Application
                 Raylib.EndDrawing();
             }
 
-            ClearAllProcesses();
+            // ClearAllProcesses();
             Raylib.CloseWindow();
 
             controller.Release();
