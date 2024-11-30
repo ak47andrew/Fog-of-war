@@ -108,7 +108,7 @@ namespace ChessChallenge.Application
 
         public static void ClearAllProcesses(){
             // Console.WriteLine("Killing all 'engine' processes...");
-            var processes = Process.GetProcessesByName("engine");
+            var processes = Process.GetProcessesByName("engine.exe");
             foreach (var process in processes)
             {
                 try

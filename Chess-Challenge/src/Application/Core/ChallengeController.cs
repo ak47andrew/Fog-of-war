@@ -195,7 +195,7 @@ namespace ChessChallenge.Application
         {
             return type switch
             {
-                PlayerType.MyBot => new ChessPlayer(new UCIPlayer("engine"), type),
+                PlayerType.MyBot => new ChessPlayer(new UCIPlayer("engine.exe"), type),
                 _ => new ChessPlayer(new HumanPlayer(boardUI), type)
             };
         }
@@ -253,7 +253,7 @@ namespace ChessChallenge.Application
             if (isPlaying)
             {
                 Program.ClearAllProcesses();
-                
+
                 isPlaying = false;
                 isWaitingToPlayMove = false;
                 gameID = -1;
