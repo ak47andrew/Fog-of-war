@@ -195,7 +195,7 @@ namespace ChessChallenge.Application
         {
             return type switch
             {
-                PlayerType.MyBot => new ChessPlayer(new UCIPlayer("engine.exe"), type),
+                PlayerType.MyBot => new ChessPlayer(new UCIPlayer("engine.exe"), type, GameDurationMilliseconds),
                 _ => new ChessPlayer(new HumanPlayer(boardUI), type)
             };
         }

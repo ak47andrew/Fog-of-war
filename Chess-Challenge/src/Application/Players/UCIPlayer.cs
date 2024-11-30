@@ -167,7 +167,6 @@ namespace ChessChallenge.Application
             }
             catch (Exception e)
             {
-                throw e;
                 Console.WriteLine($"Error during engine communication: {e.Message}");
                 Dispose();
                 return Move.NullMove;
