@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static ChessChallenge.Application.Settings;
 using static ChessChallenge.Application.ConsoleHelper;
+using System.Runtime.InteropServices;
 
 namespace ChessChallenge.Application
 {
@@ -195,7 +196,7 @@ namespace ChessChallenge.Application
         {
             return type switch
             {
-                PlayerType.MyBot => new ChessPlayer(new UCIPlayer("engine.exe"), type, GameDurationMilliseconds),
+                PlayerType.MyBot => new ChessPlayer(new UCIPlayer(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "engine.exe" : "engine"), type, GameDurationMilliseconds),
                 _ => new ChessPlayer(new HumanPlayer(boardUI), type)
             };
         }
